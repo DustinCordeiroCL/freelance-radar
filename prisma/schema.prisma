@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Project {
+  id             String    @id @default(cuid())
+  platform       String
+  externalId     String
+  title          String
+  description    String
+  url            String
+  budget         String?
+  category       String?
+  tags           String?
+  country        String?
+  postedAt       DateTime?
+  isFavorite     Boolean   @default(false)
+  isDiscarded    Boolean   @default(false)
+  matchScore     Int?
+  scoreReason    String?
+
+  proposalStatus  String?
+  proposalValue   Float?
+  proposalText    String?
+  statusUpdatedAt DateTime?
+
+  collectedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([platform, externalId])
+}
+
+model Settings {
+  id Int @id @default(1)
+
+  intervalRSS      Int @default(30)
+  intervalAPI      Int @default(30)
+  intervalScraping Int @default(180)
+
+  activeWorkana    Boolean @default(true)
+  activeFreelancer Boolean @default(true)
+  active99Freelas  Boolean @default(true)
+  activeIndeed     Boolean @default(false)
+
+  followUpDays Int @default(3)
+}
+
+model NotificationLog {
+  id        String   @id @default(cuid())
+  projectId String
+  sentAt    DateTime @default(now())
+
+  @@unique([projectId])
+}

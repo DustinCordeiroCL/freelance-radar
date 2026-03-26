@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FreelanceRadar
+
+A personal local web tool that aggregates freelance opportunities from multiple platforms into a single unified interface. Filter, favorite, discard projects, and generate AI-powered proposals — all without leaving `localhost`.
+
+## Features
+
+- Automatic collection from Workana, Freelancer.com, 99Freelas, and Indeed Chile
+- AI-powered match score for each project (via Anthropic Claude)
+- Personalized proposal generation with one click
+- Favorite / discard / proposal status tracking
+- Desktop follow-up notifications for stale projects
+- Configurable collection intervals per connector type (RSS, API, scraping)
+
+## Requirements
+
+- Node.js 20+
+- npm 10+
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/DustinCordeiroCL/freelance-radar.git
+cd freelance-radar
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure environment variables
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` and fill in the required values:
+
+```env
+ANTHROPIC_API_KEY=your_anthropic_key_here
+FREELANCER_API_TOKEN=your_freelancer_token_here
+DATABASE_URL="file:./dev.db"
+```
+
+> `ANTHROPIC_API_KEY` is required for match scoring and proposal generation.
+> `FREELANCER_API_TOKEN` is required only for the Freelancer.com connector.
+
+### 4. Run database migrations
+
+```bash
+npx prisma migrate dev
+```
+
+This creates the local SQLite database at `prisma/dev.db`.
+
+### 5. Start the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app will be available at [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Required Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Required | Description |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Yes | Anthropic API key for AI scoring and proposals |
+| `FREELANCER_API_TOKEN` | Yes (for Freelancer connector) | Freelancer.com API token |
+| `DATABASE_URL` | Yes | SQLite path — `file:./dev.db` |
 
-## Learn More
+## Database Migrations
 
-To learn more about Next.js, take a look at the following resources:
+To create a new migration after schema changes:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npx prisma migrate dev --name describe_your_change
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+To reset the database (deletes all data):
 
-## Deploy on Vercel
+```bash
+npx prisma migrate reset
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/            # Next.js App Router pages and API routes
+├── components/     # React components
+├── connectors/     # Platform connectors (Workana, Freelancer, etc.)
+├── lib/            # Shared utilities (db, AI client, scorer, scheduler)
+└── data/           # Static data (curriculum context for AI)
+prisma/
+├── schema.prisma   # Database schema
+└── migrations/     # Migration history
+```
+
+## Deployment
+
+This tool is designed to run **locally only** via `npm run dev`. No deployment needed.
