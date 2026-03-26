@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { scoreProject } from "@/lib/scorer";
 import { collect as collectWorkana } from "./workana";
 import { collect as collectNinetyNine } from "./ninetyNine";
 import { collect as collectFreelancer } from "./freelancer";
@@ -30,7 +31,7 @@ async function saveProjects(platform: string, projects: RawProject[]): Promise<n
 
     if (existing) continue;
 
-    await prisma.project.create({
+    const created = await prisma.project.create({
       data: {
         platform,
         externalId: project.externalId,
@@ -44,6 +45,9 @@ async function saveProjects(platform: string, projects: RawProject[]): Promise<n
         postedAt: project.postedAt,
       },
     });
+
+    // Fire-and-forget: score asynchronously without blocking collection
+    void scoreProject(created.id);
 
     saved++;
   }
