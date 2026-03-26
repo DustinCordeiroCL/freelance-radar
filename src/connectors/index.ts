@@ -4,12 +4,15 @@ import { collect as collectWorkana } from "./workana";
 import { collect as collectNinetyNine } from "./ninetyNine";
 import { collect as collectFreelancer } from "./freelancer";
 import { collect as collectIndeed } from "./indeed";
+import { collect as collectSoyFreelancer } from "./soyfreelancer";
+import { collect as collectUpwork } from "./upwork";
 import type { RawProject } from "./types";
 
 export interface CollectResult {
   platform: string;
   collected: number;
   saved: number;
+  skipped: number;
   error?: string;
 }
 
@@ -21,10 +24,44 @@ async function ensureSettings(): Promise<void> {
   });
 }
 
-async function saveProjects(platform: string, projects: RawProject[]): Promise<number> {
+async function getProfileKeywords(): Promise<string[]> {
+  const settings = await prisma.settings.findUnique({
+    where: { id: 1 },
+    select: { profileSkills: true, profileTitles: true },
+  });
+  const skills: string[] = settings?.profileSkills
+    ? (JSON.parse(settings.profileSkills) as string[])
+    : [];
+  const titles: string[] = settings?.profileTitles
+    ? (JSON.parse(settings.profileTitles) as string[])
+    : [];
+  return [...skills, ...titles];
+}
+
+function isRelevant(project: RawProject, keywords: string[]): boolean {
+  if (keywords.length === 0) return true;
+
+  const searchText = [project.title, project.description, ...(project.tags ?? [])]
+    .join(" ")
+    .toLowerCase();
+
+  return keywords.some((kw) => searchText.includes(kw.toLowerCase()));
+}
+
+async function saveProjects(
+  platform: string,
+  projects: RawProject[],
+  keywords: string[]
+): Promise<{ saved: number; skipped: number }> {
   let saved = 0;
+  let skipped = 0;
 
   for (const project of projects) {
+    if (!isRelevant(project, keywords)) {
+      skipped++;
+      continue;
+    }
+
     const existing = await prisma.project.findUnique({
       where: { platform_externalId: { platform, externalId: project.externalId } },
     });
@@ -52,25 +89,32 @@ async function saveProjects(platform: string, projects: RawProject[]): Promise<n
     saved++;
   }
 
-  return saved;
+  return { saved, skipped };
 }
 
 export async function runCollection(): Promise<CollectResult[]> {
   await ensureSettings();
 
   const settings = await prisma.settings.findUnique({ where: { id: 1 } });
-
   if (!settings) return [];
+
+  const keywords = await getProfileKeywords();
+
+  if (keywords.length > 0) {
+    console.log(`[collect] Profile filter active — ${keywords.length} keywords`);
+  }
 
   const connectors: Array<{
     platform: string;
     active: boolean;
-    fn: () => Promise<RawProject[]>;
+    fn: (keywords: string[]) => Promise<RawProject[]>;
   }> = [
-    { platform: "workana", active: settings.activeWorkana, fn: collectWorkana },
-    { platform: "99freelas", active: settings.active99Freelas, fn: collectNinetyNine },
-    { platform: "freelancer", active: settings.activeFreelancer, fn: collectFreelancer },
-    { platform: "indeed", active: settings.activeIndeed, fn: collectIndeed },
+    { platform: "workana", active: settings.activeWorkana, fn: () => collectWorkana() },
+    { platform: "99freelas", active: settings.active99Freelas, fn: () => collectNinetyNine() },
+    { platform: "freelancer", active: settings.activeFreelancer, fn: () => collectFreelancer() },
+    { platform: "indeed", active: settings.activeIndeed, fn: () => collectIndeed() },
+    { platform: "soyfreelancer", active: settings.activeSoyFreelancer, fn: (kw) => collectSoyFreelancer(kw) },
+    { platform: "upwork", active: settings.activeUpwork, fn: (kw) => collectUpwork(kw) },
   ];
 
   const results: CollectResult[] = [];
@@ -84,16 +128,18 @@ export async function runCollection(): Promise<CollectResult[]> {
     console.log(`[collect] Starting ${platform}...`);
 
     try {
-      const projects = await fn();
-      const saved = await saveProjects(platform, projects);
+      const projects = await fn(keywords);
+      const { saved, skipped } = await saveProjects(platform, projects, keywords);
 
-      console.log(`[collect] ${platform}: collected ${projects.length}, saved ${saved} new`);
+      console.log(
+        `[collect] ${platform}: collected ${projects.length}, saved ${saved} new, skipped ${skipped} irrelevant`
+      );
 
-      results.push({ platform, collected: projects.length, saved });
+      results.push({ platform, collected: projects.length, saved, skipped });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`[collect] ${platform} failed:`, message);
-      results.push({ platform, collected: 0, saved: 0, error: message });
+      results.push({ platform, collected: 0, saved: 0, skipped: 0, error: message });
     }
   }
 

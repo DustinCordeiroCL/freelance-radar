@@ -45,7 +45,9 @@ model Settings {
   activeWorkana    Boolean @default(true)
   activeFreelancer Boolean @default(true)
   active99Freelas  Boolean @default(true)
-  activeIndeed     Boolean @default(false)
+  activeIndeed          Boolean @default(false)
+  activeSoyFreelancer   Boolean @default(false)
+  activeUpwork          Boolean @default(false)
 
   followUpDays Int @default(3)
 

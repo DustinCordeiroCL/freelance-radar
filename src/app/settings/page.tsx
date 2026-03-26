@@ -18,6 +18,8 @@ interface Settings {
   activeFreelancer: boolean;
   active99Freelas: boolean;
   activeIndeed: boolean;
+  activeSoyFreelancer: boolean;
+  activeUpwork: boolean;
   followUpDays: number;
   anthropicKey: string | null;
   freelancerToken: string | null;
@@ -28,6 +30,8 @@ const CONNECTOR_INFO = [
   { key: "active99Freelas", label: "99Freelas", type: "Scraping" },
   { key: "activeFreelancer", label: "Freelancer.com", type: "API" },
   { key: "activeIndeed", label: "Indeed Chile", type: "Scraping" },
+  { key: "activeSoyFreelancer", label: "SoyFreelancer", type: "Scraping (CL)" },
+  { key: "activeUpwork", label: "Upwork", type: "RSS feed" },
 ] as const;
 
 function ApiKeyInput({
@@ -99,6 +103,8 @@ export default function SettingsPage(): React.ReactElement {
           activeFreelancer: settings.activeFreelancer,
           active99Freelas: settings.active99Freelas,
           activeIndeed: settings.activeIndeed,
+          activeSoyFreelancer: settings.activeSoyFreelancer,
+          activeUpwork: settings.activeUpwork,
           followUpDays: settings.followUpDays,
           anthropicKey: anthropicKey || null,
           freelancerToken: freelancerToken || null,
