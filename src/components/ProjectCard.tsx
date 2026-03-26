@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Star, Trash2, ExternalLink, FileText, CheckCircle2 } from "lucide-react";
+import { Star, Trash2, ExternalLink, FileText, CheckCircle2, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { ScoreBadge } from "./ScoreBadge";
 import { PlatformBadge } from "./PlatformBadge";
@@ -24,6 +24,7 @@ const STATUS_OPTIONS: Array<{ value: ProposalStatus | ""; label: string }> = [
 
 export function ProjectCard({ project, onUpdate, onGenerateProposal }: ProjectCardProps): React.ReactElement {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [valueInput, setValueInput] = useState(project.proposalValue ? String(project.proposalValue) : "");
 
   const tags: string[] = project.tags ? (JSON.parse(project.tags) as string[]) : [];
 
@@ -80,6 +81,27 @@ export function ProjectCard({ project, onUpdate, onGenerateProposal }: ProjectCa
     }
   }
 
+  async function handleValueSave(): Promise<void> {
+    const parsed = parseFloat(valueInput);
+    if (isNaN(parsed) && valueInput !== "") return;
+    setIsUpdating(true);
+    try {
+      const res = await fetch(`/api/projects/${project.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proposalStatus: project.proposalStatus, proposalValue: valueInput === "" ? null : parsed }),
+      });
+      if (!res.ok) throw new Error("Failed to save value");
+      const data = (await res.json()) as { proposalValue: number | null };
+      onUpdate({ id: project.id, proposalValue: data.proposalValue });
+      toast.success("Value saved");
+    } catch {
+      toast.error("Failed to save value");
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
   return (
     <div className={`rounded-lg border border-border bg-card p-4 flex flex-col gap-3 transition-shadow hover:shadow-md ${project.isDiscarded ? "opacity-50" : ""}`}>
       {/* Header row */}
@@ -118,6 +140,24 @@ export function ProjectCard({ project, onUpdate, onGenerateProposal }: ProjectCa
               +{tags.length - 6}
             </span>
           )}
+        </div>
+      )}
+
+      {/* Value input — shown when status is concluida */}
+      {project.proposalStatus === "concluida" && (
+        <div className="flex items-center gap-1.5">
+          <DollarSign className="size-3 text-muted-foreground shrink-0" />
+          <input
+            type="number"
+            min={0}
+            step={0.01}
+            value={valueInput}
+            onChange={(e) => setValueInput(e.target.value)}
+            onBlur={() => void handleValueSave()}
+            placeholder="Project value"
+            className="flex-1 text-xs bg-background border border-border rounded px-2 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+          <span className="text-xs text-muted-foreground">USD</span>
         </div>
       )}
 
