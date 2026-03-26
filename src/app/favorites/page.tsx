@@ -1,0 +1,48 @@
+"use client";
+
+import { useState } from "react";
+import { FilterBar } from "@/components/FilterBar";
+import { ProjectCard } from "@/components/ProjectCard";
+import { useProjects } from "@/hooks/useProjects";
+import type { Project } from "@/types/project";
+
+export default function FavoritesPage(): React.ReactElement {
+  const { projects, filters, isLoading, setFilters, updateProject } = useProjects(true);
+  const [proposalTarget, setProposalTarget] = useState<Project | null>(null);
+
+  void proposalTarget;
+
+  return (
+    <div className="flex flex-col h-full">
+      <header className="flex items-center px-6 py-4 border-b border-border bg-card">
+        <h1 className="text-lg font-semibold">Favorites</h1>
+      </header>
+
+      <FilterBar filters={filters} onChange={setFilters} />
+
+      <div className="flex-1 overflow-y-auto p-6">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
+            Loading favorites...
+          </div>
+        ) : projects.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-40 gap-2 text-muted-foreground">
+            <p className="text-sm font-medium">No favorites yet</p>
+            <p className="text-xs">Star projects on the dashboard to see them here</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onUpdate={updateProject}
+                onGenerateProposal={setProposalTarget}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
