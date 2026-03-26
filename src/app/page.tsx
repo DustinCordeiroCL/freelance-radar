@@ -5,15 +5,18 @@ import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FilterBar } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
+import { ProjectCardList } from "@/components/ProjectCardList";
 import { ProposalModal } from "@/components/ProposalModal";
 import { useProjects } from "@/hooks/useProjects";
 import { useCollect } from "@/hooks/useCollect";
+import { useViewMode } from "@/hooks/useViewMode";
 import type { Project } from "@/types/project";
 
 export default function DashboardPage(): React.ReactElement {
   const { projects, filters, isLoading, setFilters, updateProject, reload } = useProjects();
   const { isCollecting, trigger, lastCollectedAt } = useCollect(reload);
   const [proposalTarget, setProposalTarget] = useState<Project | null>(null);
+  const [viewMode, setViewMode] = useViewMode();
 
   function handleProposalSaved(projectId: string, proposalText: string): void {
     updateProject({ id: projectId, proposalText });
@@ -41,9 +44,15 @@ export default function DashboardPage(): React.ReactElement {
         </Button>
       </header>
 
-      <FilterBar filters={filters} onChange={setFilters} total={projects.length} />
+      <FilterBar
+        filters={filters}
+        onChange={setFilters}
+        total={projects.length}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
             Loading projects...
@@ -53,8 +62,19 @@ export default function DashboardPage(): React.ReactElement {
             <p className="text-sm font-medium">No projects found</p>
             <p className="text-xs">Try adjusting filters or collect new opportunities</p>
           </div>
+        ) : viewMode === "list" ? (
+          <div className="flex flex-col">
+            {projects.map((project) => (
+              <ProjectCardList
+                key={project.id}
+                project={project}
+                onUpdate={updateProject}
+                onGenerateProposal={setProposalTarget}
+              />
+            ))}
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-6">
             {projects.map((project) => (
               <ProjectCard
                 key={project.id}

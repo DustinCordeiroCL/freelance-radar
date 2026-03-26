@@ -24,10 +24,13 @@ export interface Project {
 
 export type ProposalStatus = "em_negociacao" | "em_desenvolvimento" | "concluida";
 
+export type SortOption = "date" | "score" | "value";
+
 export interface Filters {
   platforms: string[];
   minScore: number;
   search: string;
   proposalStatuses: string[];
   showDiscarded: boolean;
+  sort: SortOption;
 }

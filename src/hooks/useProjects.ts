@@ -9,7 +9,22 @@ const DEFAULT_FILTERS: Filters = {
   search: "",
   proposalStatuses: [],
   showDiscarded: false,
+  sort: "date",
 };
+
+function sortProjects(projects: Project[], sort: Filters["sort"]): Project[] {
+  const copy = [...projects];
+  if (sort === "score") {
+    return copy.sort((a, b) => (b.matchScore ?? -1) - (a.matchScore ?? -1));
+  }
+  if (sort === "value") {
+    return copy.sort((a, b) => (b.proposalValue ?? -1) - (a.proposalValue ?? -1));
+  }
+  // date: newest first (default API order)
+  return copy.sort(
+    (a, b) => new Date(b.collectedAt).getTime() - new Date(a.collectedAt).getTime()
+  );
+}
 
 export function useProjects(onlyFavorites = false): {
   projects: Project[];
@@ -39,12 +54,10 @@ export function useProjects(onlyFavorites = false): {
 
       let data = (await res.json()) as Project[];
 
-      // Client-side: multi-platform filter
       if (filters.platforms.length > 1) {
         data = data.filter((p) => filters.platforms.includes(p.platform));
       }
 
-      // Client-side: proposal status filter
       if (filters.proposalStatuses.length > 0) {
         data = data.filter((p) => {
           const key = p.proposalStatus ?? "none";
@@ -52,7 +65,7 @@ export function useProjects(onlyFavorites = false): {
         });
       }
 
-      setProjects(data);
+      setProjects(sortProjects(data, filters.sort));
     } catch (err) {
       console.error("Failed to fetch projects:", err);
     } finally {

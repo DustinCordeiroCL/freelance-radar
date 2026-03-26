@@ -42,6 +42,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     "profileTitles",
     "activeSoyFreelancer",
     "activeUpwork",
+    "scoreAlertThreshold",
   ] as const;
 
   type AllowedKey = (typeof allowed)[number];

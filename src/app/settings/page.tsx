@@ -21,6 +21,7 @@ interface Settings {
   activeSoyFreelancer: boolean;
   activeUpwork: boolean;
   followUpDays: number;
+  scoreAlertThreshold: number;
   anthropicKey: string | null;
   freelancerToken: string | null;
 }
@@ -106,6 +107,7 @@ export default function SettingsPage(): React.ReactElement {
           activeSoyFreelancer: settings.activeSoyFreelancer,
           activeUpwork: settings.activeUpwork,
           followUpDays: settings.followUpDays,
+          scoreAlertThreshold: settings.scoreAlertThreshold,
           anthropicKey: anthropicKey || null,
           freelancerToken: freelancerToken || null,
         }),
@@ -302,6 +304,26 @@ export default function SettingsPage(): React.ReactElement {
                 className="w-16 h-8 text-sm"
               />
               <span className="text-xs text-muted-foreground">days</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <Label className="text-sm">Score alert threshold</Label>
+              <p className="text-xs text-muted-foreground">
+                Sends a desktop notification when a new project scores at or above this value
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={settings.scoreAlertThreshold}
+                onChange={(e) => update("scoreAlertThreshold", parseInt(e.target.value, 10) || 70)}
+                className="w-16 h-8 text-sm"
+              />
+              <span className="text-xs text-muted-foreground">/ 100</span>
             </div>
           </div>
         </section>

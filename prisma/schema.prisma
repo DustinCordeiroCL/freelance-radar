@@ -49,7 +49,8 @@ model Settings {
   activeSoyFreelancer   Boolean @default(false)
   activeUpwork          Boolean @default(false)
 
-  followUpDays Int @default(3)
+  followUpDays         Int @default(3)
+  scoreAlertThreshold  Int @default(70)
 
   anthropicKey    String?
   freelancerToken String?

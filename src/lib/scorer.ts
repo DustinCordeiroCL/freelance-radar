@@ -1,6 +1,7 @@
 import { getAnthropicClient } from "./anthropic";
 import { resolveAnthropicKey } from "./keys";
 import { getProfileContext } from "./profile";
+import { sendNotification } from "./notifier";
 import { prisma } from "./db";
 
 interface ScoreResult {
@@ -70,6 +71,14 @@ export async function scoreProject(projectId: string): Promise<void> {
     });
 
     console.log(`[scorer] ${project.platform}/${project.externalId}: score=${score}`);
+
+    const settings = await prisma.settings.findUnique({ where: { id: 1 } });
+    if (settings && score >= settings.scoreAlertThreshold) {
+      sendNotification(
+        `FreelanceRadar — High match (${score})`,
+        project.title
+      );
+    }
   } catch (err) {
     console.error(`[scorer] Failed to score project ${projectId}:`, err);
   }
