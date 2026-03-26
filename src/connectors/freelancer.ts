@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { RawProject } from "./types";
+import { resolveFreelancerToken } from "@/lib/keys";
 
 const API_BASE = "https://www.freelancer.com/api/projects/0.1";
 
@@ -47,7 +48,7 @@ function formatBudget(budget: FreelancerProject["budget"]): string | undefined {
 }
 
 export async function collect(): Promise<RawProject[]> {
-  const token = process.env.FREELANCER_API_TOKEN;
+  const token = await resolveFreelancerToken();
 
   if (!token) {
     console.warn("[freelancer] FREELANCER_API_TOKEN not set — skipping");

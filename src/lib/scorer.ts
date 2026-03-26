@@ -1,4 +1,5 @@
-import { anthropic } from "./anthropic";
+import { getAnthropicClient } from "./anthropic";
+import { resolveAnthropicKey } from "./keys";
 import { CURRICULUM } from "@/data/curriculum";
 import { prisma } from "./db";
 
@@ -16,7 +17,9 @@ interface ProjectData {
 }
 
 async function callScoreApi(project: ProjectData): Promise<ScoreResult> {
-  const message = await anthropic.messages.create({
+  const client = await getAnthropicClient();
+
+  const message = await client.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 256,
     system:
@@ -50,7 +53,8 @@ async function callScoreApi(project: ProjectData): Promise<ScoreResult> {
 }
 
 export async function scoreProject(projectId: string): Promise<void> {
-  if (!process.env.ANTHROPIC_API_KEY) return;
+  const apiKey = await resolveAnthropicKey();
+  if (!apiKey) return;
 
   const project = await prisma.project.findUnique({ where: { id: projectId } });
 

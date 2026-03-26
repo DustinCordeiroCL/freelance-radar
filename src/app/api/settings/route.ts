@@ -36,6 +36,8 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     "active99Freelas",
     "activeIndeed",
     "followUpDays",
+    "anthropicKey",
+    "freelancerToken",
   ] as const;
 
   type AllowedKey = (typeof allowed)[number];

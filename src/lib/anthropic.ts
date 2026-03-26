@@ -1,9 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { resolveAnthropicKey } from "./keys";
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.warn("[anthropic] ANTHROPIC_API_KEY not set — AI features will be unavailable");
+export async function getAnthropicClient(): Promise<Anthropic> {
+  const apiKey = await resolveAnthropicKey();
+  if (!apiKey) {
+    console.warn("[anthropic] No API key configured — AI features will be unavailable");
+  }
+  return new Anthropic({ apiKey });
 }
-
-export const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY ?? "",
-});

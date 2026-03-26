@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Save, Loader2 } from "lucide-react";
+import { Save, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { InfoPopover } from "@/components/InfoPopover";
 
 interface Settings {
   id: number;
@@ -18,24 +19,64 @@ interface Settings {
   active99Freelas: boolean;
   activeIndeed: boolean;
   followUpDays: number;
+  anthropicKey: string | null;
+  freelancerToken: string | null;
 }
 
 const CONNECTOR_INFO = [
-  { key: "activeWorkana", label: "Workana", type: "Scraping (PT + ES)", intervalKey: "intervalRSS" },
-  { key: "active99Freelas", label: "99Freelas", type: "Scraping", intervalKey: "intervalRSS" },
-  { key: "activeFreelancer", label: "Freelancer.com", type: "API", intervalKey: "intervalAPI" },
-  { key: "activeIndeed", label: "Indeed Chile", type: "Scraping", intervalKey: "intervalScraping" },
+  { key: "activeWorkana", label: "Workana", type: "Scraping (PT + ES)" },
+  { key: "active99Freelas", label: "99Freelas", type: "Scraping" },
+  { key: "activeFreelancer", label: "Freelancer.com", type: "API" },
+  { key: "activeIndeed", label: "Indeed Chile", type: "Scraping" },
 ] as const;
+
+function ApiKeyInput({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}): React.ReactElement {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="relative">
+      <Input
+        type={visible ? "text" : "password"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-8 text-sm pr-9 font-mono"
+        autoComplete="off"
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+        aria-label={visible ? "Hide key" : "Show key"}
+      >
+        {visible ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+      </button>
+    </div>
+  );
+}
 
 export default function SettingsPage(): React.ReactElement {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [anthropicKey, setAnthropicKey] = useState("");
   const [freelancerToken, setFreelancerToken] = useState("");
 
   useEffect(() => {
     void fetch("/api/settings")
       .then((r) => r.json())
-      .then((data) => setSettings(data as Settings))
+      .then((data) => {
+        const s = data as Settings;
+        setSettings(s);
+        setAnthropicKey(s.anthropicKey ?? "");
+        setFreelancerToken(s.freelancerToken ?? "");
+      })
       .catch(() => toast.error("Failed to load settings"));
   }, []);
 
@@ -59,10 +100,12 @@ export default function SettingsPage(): React.ReactElement {
           active99Freelas: settings.active99Freelas,
           activeIndeed: settings.activeIndeed,
           followUpDays: settings.followUpDays,
+          anthropicKey: anthropicKey || null,
+          freelancerToken: freelancerToken || null,
         }),
       });
       if (!res.ok) throw new Error("Save failed");
-      toast.success("Settings saved — restart the server to apply new intervals");
+      toast.success("Settings saved");
     } catch {
       toast.error("Failed to save settings");
     } finally {
@@ -89,6 +132,64 @@ export default function SettingsPage(): React.ReactElement {
       </header>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8 max-w-2xl">
+
+        {/* API Keys */}
+        <section>
+          <h2 className="text-sm font-semibold mb-4">API Keys</h2>
+          <div className="flex flex-col gap-5">
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-1.5">
+                <Label className="text-sm">Anthropic API Key</Label>
+                <InfoPopover>
+                  <p className="font-medium text-foreground mb-1">What is this?</p>
+                  <p className="mb-2">Required for AI match scoring and proposal generation.</p>
+                  <p className="font-medium text-foreground mb-1">How to get it</p>
+                  <ol className="list-decimal list-inside space-y-1">
+                    <li>Go to <span className="font-mono text-xs bg-muted px-1 rounded">console.anthropic.com</span></li>
+                    <li>Navigate to <strong>API Keys</strong></li>
+                    <li>Click <strong>Create key</strong> and copy it</li>
+                  </ol>
+                </InfoPopover>
+              </div>
+              <ApiKeyInput
+                value={anthropicKey}
+                onChange={setAnthropicKey}
+                placeholder="sk-ant-..."
+              />
+              {!anthropicKey && (
+                <p className="text-xs text-amber-500">Key not configured — AI scoring and proposals are disabled</p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-1.5">
+                <Label className="text-sm">Freelancer.com API Token</Label>
+                <InfoPopover>
+                  <p className="font-medium text-foreground mb-1">What is this?</p>
+                  <p className="mb-2">Required for the Freelancer.com connector. Without it, that platform is skipped.</p>
+                  <p className="font-medium text-foreground mb-1">How to get it</p>
+                  <ol className="list-decimal list-inside space-y-1">
+                    <li>Go to <span className="font-mono text-xs bg-muted px-1 rounded">freelancer.com/api</span></li>
+                    <li>Register an application</li>
+                    <li>Copy the <strong>OAuth token</strong></li>
+                  </ol>
+                </InfoPopover>
+              </div>
+              <ApiKeyInput
+                value={freelancerToken}
+                onChange={setFreelancerToken}
+                placeholder="Paste your token here"
+              />
+              {!freelancerToken && (
+                <p className="text-xs text-muted-foreground">Optional — Freelancer.com connector will be skipped if not set</p>
+              )}
+            </div>
+
+          </div>
+        </section>
+
+        <Separator />
 
         {/* Collection intervals */}
         <section>
@@ -197,27 +298,6 @@ export default function SettingsPage(): React.ReactElement {
               <span className="text-xs text-muted-foreground">days</span>
             </div>
           </div>
-        </section>
-
-        <Separator />
-
-        {/* API tokens */}
-        <section>
-          <h2 className="text-sm font-semibold mb-1">Freelancer.com API token</h2>
-          <p className="text-xs text-muted-foreground mb-3">
-            Token is stored in <code className="bg-muted px-1 rounded">.env.local</code> — edit the file directly and restart the server to apply.
-          </p>
-          <Input
-            type="password"
-            placeholder="Current token is set via .env.local"
-            value={freelancerToken}
-            onChange={(e) => setFreelancerToken(e.target.value)}
-            className="h-8 text-sm"
-            disabled
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Set <code className="bg-muted px-1 rounded">FREELANCER_API_TOKEN=your_token</code> in <code className="bg-muted px-1 rounded">.env.local</code>
-          </p>
         </section>
 
       </div>

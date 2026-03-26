@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { anthropic } from "@/lib/anthropic";
+import { getAnthropicClient } from "@/lib/anthropic";
+import { resolveAnthropicKey } from "@/lib/keys";
 import { CURRICULUM } from "@/data/curriculum";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json({ error: "ANTHROPIC_API_KEY is not configured" }, { status: 503 });
+  const apiKey = await resolveAnthropicKey();
+  if (!apiKey) {
+    return NextResponse.json({ error: "Anthropic API key is not configured. Add it in Settings → API Keys." }, { status: 503 });
   }
 
   let body: unknown;
@@ -28,7 +30,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const message = await anthropic.messages.create({
+    const client = await getAnthropicClient();
+
+    const message = await client.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 1024,
       system:
