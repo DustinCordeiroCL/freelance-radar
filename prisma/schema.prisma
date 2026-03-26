@@ -51,6 +51,9 @@ model Settings {
 
   anthropicKey    String?
   freelancerToken String?
+
+  profileSkills String?
+  profileTitles String?
 }
 
 model NotificationLog {

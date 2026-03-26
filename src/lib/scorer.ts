@@ -1,6 +1,6 @@
 import { getAnthropicClient } from "./anthropic";
 import { resolveAnthropicKey } from "./keys";
-import { CURRICULUM } from "@/data/curriculum";
+import { getProfileContext } from "./profile";
 import { prisma } from "./db";
 
 interface ScoreResult {
@@ -18,6 +18,7 @@ interface ProjectData {
 
 async function callScoreApi(project: ProjectData): Promise<ScoreResult> {
   const client = await getAnthropicClient();
+  const profileContext = await getProfileContext();
 
   const message = await client.messages.create({
     model: "claude-sonnet-4-20250514",
@@ -29,7 +30,7 @@ async function callScoreApi(project: ProjectData): Promise<ScoreResult> {
       {
         role: "user",
         content:
-          `Developer profile:\n${CURRICULUM}\n\n` +
+          `Developer profile:\n${profileContext}\n\n` +
           `Project:\n` +
           `Title: ${project.title}\n` +
           `Description: ${project.description}\n` +

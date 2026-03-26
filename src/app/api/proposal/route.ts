@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAnthropicClient } from "@/lib/anthropic";
 import { resolveAnthropicKey } from "@/lib/keys";
-import { CURRICULUM } from "@/data/curriculum";
+import { getProfileContext } from "@/lib/profile";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const apiKey = await resolveAnthropicKey();
@@ -31,6 +31,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   try {
     const client = await getAnthropicClient();
+    const profileContext = await getProfileContext();
 
     const message = await client.messages.create({
       model: "claude-sonnet-4-20250514",
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         {
           role: "user",
           content:
-            `Developer profile:\n${CURRICULUM}\n\n` +
+            `Developer profile:\n${profileContext}\n\n` +
             `Project:\n` +
             `Title: ${project.title}\n` +
             `Description: ${project.description}\n` +

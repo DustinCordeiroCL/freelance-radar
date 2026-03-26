@@ -38,6 +38,8 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     "followUpDays",
     "anthropicKey",
     "freelancerToken",
+    "profileSkills",
+    "profileTitles",
   ] as const;
 
   type AllowedKey = (typeof allowed)[number];
