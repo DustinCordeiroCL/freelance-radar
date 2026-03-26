@@ -21,7 +21,7 @@ export default function FavoritesPage(): React.ReactElement {
         <h1 className="text-lg font-semibold">Favorites</h1>
       </header>
 
-      <FilterBar filters={filters} onChange={setFilters} />
+      <FilterBar filters={filters} onChange={setFilters} total={projects.length} />
 
       <div className="flex-1 overflow-y-auto p-6">
         {isLoading ? (

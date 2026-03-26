@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Star, Trash2, ExternalLink, FileText } from "lucide-react";
+import { Star, Trash2, ExternalLink, FileText, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { ScoreBadge } from "./ScoreBadge";
 import { PlatformBadge } from "./PlatformBadge";
@@ -81,7 +81,7 @@ export function ProjectCard({ project, onUpdate, onGenerateProposal }: ProjectCa
   }
 
   return (
-    <div className={`rounded-lg border border-border bg-card p-4 flex flex-col gap-3 ${project.isDiscarded ? "opacity-50" : ""}`}>
+    <div className={`rounded-lg border border-border bg-card p-4 flex flex-col gap-3 transition-shadow hover:shadow-md ${project.isDiscarded ? "opacity-50" : ""}`}>
       {/* Header row */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
@@ -137,10 +137,13 @@ export function ProjectCard({ project, onUpdate, onGenerateProposal }: ProjectCa
         <div className="flex items-center gap-1">
           <button
             onClick={() => onGenerateProposal(project)}
-            title="Generate proposal"
-            className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            title={project.proposalText ? "View saved proposal" : "Generate proposal"}
+            className={`p-1.5 rounded hover:bg-accent transition-colors relative ${project.proposalText ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
           >
             <FileText className="size-4" />
+            {project.proposalText && (
+              <CheckCircle2 className="size-2.5 absolute -top-0.5 -right-0.5 fill-primary text-primary-foreground" />
+            )}
           </button>
           <a
             href={project.url}

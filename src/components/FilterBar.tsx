@@ -19,16 +19,35 @@ const PROPOSAL_STATUSES = [
   { value: "concluida", label: "Concluída" },
 ];
 
+const DEFAULT_FILTERS: Filters = {
+  platforms: [],
+  minScore: 0,
+  search: "",
+  proposalStatuses: [],
+  showDiscarded: false,
+};
+
+function isActive(filters: Filters): boolean {
+  return (
+    filters.platforms.length > 0 ||
+    filters.minScore > 0 ||
+    filters.search !== "" ||
+    filters.proposalStatuses.length > 0 ||
+    filters.showDiscarded
+  );
+}
+
 interface FilterBarProps {
   filters: Filters;
   onChange: (filters: Filters) => void;
+  total?: number;
 }
 
 function toggleItem(arr: string[], value: string): string[] {
   return arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 }
 
-export function FilterBar({ filters, onChange }: FilterBarProps): React.ReactElement {
+export function FilterBar({ filters, onChange, total }: FilterBarProps): React.ReactElement {
   return (
     <div className="flex flex-wrap gap-4 items-end p-4 border-b border-border bg-card">
       {/* Search */}
@@ -111,6 +130,21 @@ export function FilterBar({ filters, onChange }: FilterBarProps): React.ReactEle
         >
           {filters.showDiscarded ? "Hiding discarded ✓" : "Show discarded"}
         </button>
+      </div>
+
+      {/* Reset + count */}
+      <div className="flex items-center gap-3 ml-auto">
+        {total !== undefined && (
+          <span className="text-xs text-muted-foreground">{total} project{total !== 1 ? "s" : ""}</span>
+        )}
+        {isActive(filters) && (
+          <button
+            onClick={() => onChange(DEFAULT_FILTERS)}
+            className="px-2 py-1 rounded text-xs border border-border text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
+          >
+            Reset filters
+          </button>
+        )}
       </div>
     </div>
   );

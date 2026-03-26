@@ -41,7 +41,7 @@ export default function DashboardPage(): React.ReactElement {
         </Button>
       </header>
 
-      <FilterBar filters={filters} onChange={setFilters} />
+      <FilterBar filters={filters} onChange={setFilters} total={projects.length} />
 
       <div className="flex-1 overflow-y-auto p-6">
         {isLoading ? (

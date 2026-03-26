@@ -5,6 +5,7 @@ import { sendNotification } from "./notifier";
 
 let collectionTask: ScheduledTask | null = null;
 let followUpTask: ScheduledTask | null = null;
+let cleanupTask: ScheduledTask | null = null;
 
 function minutesToCron(minutes: number): string {
   if (minutes < 60) return `*/${minutes} * * * *`;
@@ -54,6 +55,27 @@ async function runFollowUpCheck(): Promise<void> {
   }
 }
 
+async function runCleanup(): Promise<void> {
+  try {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+
+    const { count } = await prisma.project.deleteMany({
+      where: {
+        collectedAt: { lt: cutoff },
+        isFavorite: false,
+        proposalStatus: null,
+      },
+    });
+
+    if (count > 0) {
+      console.log(`[cleanup] Deleted ${count} projects older than 30 days`);
+    }
+  } catch (err) {
+    console.error("[cleanup] Failed:", err);
+  }
+}
+
 export async function startScheduler(): Promise<void> {
   const settings = await prisma.settings.upsert({
     where: { id: 1 },
@@ -64,6 +86,7 @@ export async function startScheduler(): Promise<void> {
   // Stop existing tasks before re-scheduling
   collectionTask?.stop();
   followUpTask?.stop();
+  cleanupTask?.stop();
 
   // --- Collection cron ---
   // Connectors run on different intervals based on their type.
@@ -85,11 +108,21 @@ export async function startScheduler(): Promise<void> {
   });
 
   console.log("[scheduler] Follow-up cron started: daily at 09:00");
+
+  // --- Cleanup cron (runs daily at 03:00 — removes non-favorite, unworked projects older than 30 days) ---
+  cleanupTask = cron.schedule("0 3 * * *", () => {
+    console.log("[scheduler] Running cleanup...");
+    void runCleanup();
+  });
+
+  console.log("[scheduler] Cleanup cron started: daily at 03:00");
 }
 
 export function stopScheduler(): void {
   collectionTask?.stop();
   followUpTask?.stop();
+  cleanupTask?.stop();
   collectionTask = null;
   followUpTask = null;
+  cleanupTask = null;
 }

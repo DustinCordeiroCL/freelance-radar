@@ -7,8 +7,8 @@ interface ScoreBadgeProps {
 export function ScoreBadge({ score }: ScoreBadgeProps): React.ReactElement {
   if (score === null) {
     return (
-      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
-        —
+      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground animate-pulse">
+        scoring…
       </span>
     );
   }
