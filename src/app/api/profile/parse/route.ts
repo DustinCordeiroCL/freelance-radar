@@ -8,8 +8,10 @@ interface ParseResult {
 }
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
+  // Import the internal module directly to avoid pdf-parse's test file loading
+  // at webpack bundle time (known Next.js + pdf-parse v1 issue)
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
+  const pdfParse = require("pdf-parse/lib/pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
   const result = await pdfParse(buffer);
   return result.text;
 }
