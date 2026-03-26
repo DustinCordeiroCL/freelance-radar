@@ -5,6 +5,7 @@ import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FilterBar } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
+import { ProposalModal } from "@/components/ProposalModal";
 import { useProjects } from "@/hooks/useProjects";
 import { useCollect } from "@/hooks/useCollect";
 import type { Project } from "@/types/project";
@@ -14,12 +15,12 @@ export default function DashboardPage(): React.ReactElement {
   const { isCollecting, trigger, lastCollectedAt } = useCollect(reload);
   const [proposalTarget, setProposalTarget] = useState<Project | null>(null);
 
-  // Suppress unused for now — ProposalModal comes in Etapa 6
-  void proposalTarget;
+  function handleProposalSaved(projectId: string, proposalText: string): void {
+    updateProject({ id: projectId, proposalText });
+  }
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
         <div>
           <h1 className="text-lg font-semibold">Dashboard</h1>
@@ -40,10 +41,8 @@ export default function DashboardPage(): React.ReactElement {
         </Button>
       </header>
 
-      {/* Filters */}
       <FilterBar filters={filters} onChange={setFilters} />
 
-      {/* Project list */}
       <div className="flex-1 overflow-y-auto p-6">
         {isLoading ? (
           <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
@@ -67,6 +66,12 @@ export default function DashboardPage(): React.ReactElement {
           </div>
         )}
       </div>
+
+      <ProposalModal
+        project={proposalTarget}
+        onClose={() => setProposalTarget(null)}
+        onProposalSaved={handleProposalSaved}
+      />
     </div>
   );
 }

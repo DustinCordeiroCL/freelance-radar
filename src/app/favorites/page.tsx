@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FilterBar } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
+import { ProposalModal } from "@/components/ProposalModal";
 import { useProjects } from "@/hooks/useProjects";
 import type { Project } from "@/types/project";
 
@@ -10,7 +11,9 @@ export default function FavoritesPage(): React.ReactElement {
   const { projects, filters, isLoading, setFilters, updateProject } = useProjects(true);
   const [proposalTarget, setProposalTarget] = useState<Project | null>(null);
 
-  void proposalTarget;
+  function handleProposalSaved(projectId: string, proposalText: string): void {
+    updateProject({ id: projectId, proposalText });
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -43,6 +46,12 @@ export default function FavoritesPage(): React.ReactElement {
           </div>
         )}
       </div>
+
+      <ProposalModal
+        project={proposalTarget}
+        onClose={() => setProposalTarget(null)}
+        onProposalSaved={handleProposalSaved}
+      />
     </div>
   );
 }
