@@ -65,14 +65,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const message = await client.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 512,
+      max_tokens: 1024,
       system:
         "You are a resume parser. Extract job titles and technical skills from a resume.\n" +
         "Return ONLY a valid JSON object with no extra text:\n" +
         "{ \"titles\": [\"...\"], \"skills\": [\"...\"] }\n" +
-        "- titles: up to 5 job title variations this person could be hired for\n" +
-        "- skills: up to 30 specific technical skills (languages, frameworks, tools, databases)\n" +
-        "- skills must be individual items, not categories (e.g. 'React' not 'Frontend Development')\n" +
+        "- titles: up to 5 job title variations this person could be hired for.\n" +
+        "  For each title, include ALL THREE language versions as separate array items:\n" +
+        "  Spanish, English, and Brazilian Portuguese.\n" +
+        "  Example: ['Desarrollador Full Stack', 'Full Stack Developer', 'Desenvolvedor Full Stack']\n" +
+        "  Do not group them — list each language variant as its own string in the array.\n" +
+        "- skills: up to 30 specific technical skills (languages, frameworks, tools, databases).\n" +
+        "  Always use the canonical English name for skills (e.g. 'React', not 'ReactJS' or 'React.js').\n" +
+        "  Skills must be individual items, not categories (e.g. 'React' not 'Frontend Development').\n" +
         "- do not include soft skills",
       messages: [
         {

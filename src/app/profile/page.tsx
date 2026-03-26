@@ -152,6 +152,29 @@ export default function ProfilePage(): React.ReactElement {
     }
   }
 
+  async function removeItem(type: "title" | "skill", item: string): Promise<void> {
+    const nextTitles = type === "title" ? savedTitles.filter((t) => t !== item) : savedTitles;
+    const nextSkills = type === "skill" ? savedSkills.filter((s) => s !== item) : savedSkills;
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profileTitles: JSON.stringify(nextTitles),
+          profileSkills: JSON.stringify(nextSkills),
+        }),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      setSavedProfile({
+        profileTitles: JSON.stringify(nextTitles),
+        profileSkills: JSON.stringify(nextSkills),
+      });
+      toast.success("Item removed");
+    } catch {
+      toast.error("Failed to remove item");
+    }
+  }
+
   async function clearProfile(): Promise<void> {
     try {
       const res = await fetch("/api/settings", {
@@ -205,7 +228,7 @@ export default function ProfilePage(): React.ReactElement {
                 onClick={() => void clearProfile()}
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
               >
-                <X className="size-3" /> Clear
+                <X className="size-3" /> Clear all
               </button>
             </div>
             {savedTitles.length > 0 && (
@@ -213,9 +236,15 @@ export default function ProfilePage(): React.ReactElement {
                 <p className="text-xs text-muted-foreground">Job titles</p>
                 <div className="flex flex-wrap gap-1.5">
                   {savedTitles.map((t) => (
-                    <span key={t} className="px-2.5 py-1 rounded-full bg-primary/10 border border-primary text-primary text-xs">
+                    <button
+                      key={t}
+                      onClick={() => void removeItem("title", t)}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 border border-primary text-primary text-xs hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive transition-colors group"
+                      title="Remove"
+                    >
                       {t}
-                    </span>
+                      <X className="size-2.5 opacity-50 group-hover:opacity-100" />
+                    </button>
                   ))}
                 </div>
               </div>
@@ -225,9 +254,15 @@ export default function ProfilePage(): React.ReactElement {
                 <p className="text-xs text-muted-foreground">Skills</p>
                 <div className="flex flex-wrap gap-1.5">
                   {savedSkills.map((s) => (
-                    <span key={s} className="px-2.5 py-1 rounded-full bg-muted border border-border text-muted-foreground text-xs">
+                    <button
+                      key={s}
+                      onClick={() => void removeItem("skill", s)}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted border border-border text-muted-foreground text-xs hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive transition-colors group"
+                      title="Remove"
+                    >
                       {s}
-                    </span>
+                      <X className="size-2.5 opacity-50 group-hover:opacity-100" />
+                    </button>
                   ))}
                 </div>
               </div>
