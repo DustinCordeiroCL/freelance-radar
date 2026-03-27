@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { Project, Filters } from "@/types/project";
 
 const DEFAULT_FILTERS: Filters = {
@@ -50,9 +50,11 @@ export function useProjects(onlyFavorites = false): {
   const [projects, setProjects] = useState<Project[]>([]);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [isLoading, setIsLoading] = useState(true);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const projectsRef = useRef<Project[]>([]);
 
-  const fetchProjects = useCallback(async () => {
-    setIsLoading(true);
+  const fetchProjects = useCallback(async (silent = false) => {
+    if (!silent) setIsLoading(true);
     try {
       const params = new URLSearchParams();
 
@@ -78,16 +80,38 @@ export function useProjects(onlyFavorites = false): {
         });
       }
 
-      setProjects(sortProjects(data, filters.sort));
+      const sorted = sortProjects(data, filters.sort);
+      setProjects(sorted);
+      projectsRef.current = sorted;
+      return data;
     } catch (err) {
       console.error("Failed to fetch projects:", err);
+      return null;
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   }, [filters, onlyFavorites]);
 
+  // Initial fetch
   useEffect(() => {
-    void fetchProjects();
+    void fetchProjects(false);
+  }, [fetchProjects]);
+
+  // Poll silently every 5s while any project has matchScore === null.
+  // Uses a ref so the interval doesn't restart on every render.
+  useEffect(() => {
+    if (pollingRef.current) clearInterval(pollingRef.current);
+
+    pollingRef.current = setInterval(() => {
+      const hasUnscored = projectsRef.current.some((p) => p.matchScore === null);
+      if (hasUnscored) {
+        void fetchProjects(true);
+      }
+    }, 5000);
+
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
   }, [fetchProjects]);
 
   function updateProject(updated: Partial<Project> & { id: string }): void {

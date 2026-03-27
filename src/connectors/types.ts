@@ -8,4 +8,6 @@ export interface RawProject {
   tags?: string[];
   country?: string;
   postedAt?: Date;
+  /** When true, the connector already filtered by keywords — skip isRelevant check */
+  preFiltered?: boolean;
 }

@@ -57,7 +57,7 @@ async function saveProjects(
   let skipped = 0;
 
   for (const project of projects) {
-    if (!isRelevant(project, keywords)) {
+    if (!project.preFiltered && !isRelevant(project, keywords)) {
       skipped++;
       continue;
     }
