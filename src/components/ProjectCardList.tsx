@@ -123,7 +123,7 @@ export function ProjectCardList({ project, onUpdate, onViewDetails }: ProjectCar
       <div className="flex items-center gap-0.5 shrink-0">
         <button
           onClick={() => onViewDetails(project)}
-          title="Ver descrição do projeto"
+          title="View project details"
           className={`p-1.5 rounded hover:bg-accent transition-colors relative ${project.proposalText ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
         >
           <FileText className="size-3.5" />

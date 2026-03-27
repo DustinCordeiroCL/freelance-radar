@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PlatformBadge } from "./PlatformBadge";
@@ -134,7 +133,7 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-5 py-3 border-t border-border shrink-0 sm:justify-between">
+        <div className="flex items-center justify-between gap-2 px-5 py-3 border-t border-border shrink-0">
           <a
             href={project?.url}
             target="_blank"
@@ -161,7 +160,7 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
               </Button>
             </div>
           )}
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
