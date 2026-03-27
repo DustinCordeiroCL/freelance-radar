@@ -81,5 +81,10 @@ export async function scoreProject(projectId: string): Promise<void> {
     }
   } catch (err) {
     console.error(`[scorer] Failed to score project ${projectId}:`, err);
+    // Mark as scored with 0 so the project doesn't stay stuck in "scoring..." state
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { matchScore: 0, scoreReason: "Scoring failed — check API key" },
+    }).catch(() => { /* ignore update failure */ });
   }
 }

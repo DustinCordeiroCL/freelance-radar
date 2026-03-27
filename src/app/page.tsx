@@ -53,9 +53,9 @@ export default function DashboardPage(): React.ReactElement {
       />
 
       <div className="flex-1 overflow-y-auto">
-        {isLoading ? (
+        {isLoading || isCollecting ? (
           <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-            Loading projects...
+            {isCollecting ? "Collecting new projects..." : "Loading projects..."}
           </div>
         ) : projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 gap-2 text-muted-foreground">
@@ -69,7 +69,6 @@ export default function DashboardPage(): React.ReactElement {
                 key={project.id}
                 project={project}
                 onUpdate={updateProject}
-                onGenerateProposal={setProposalTarget}
               />
             ))}
           </div>

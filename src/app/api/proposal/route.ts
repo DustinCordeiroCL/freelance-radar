@@ -38,7 +38,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       max_tokens: 1024,
       system:
         "You are an expert in writing freelance proposals.\n" +
-        "Write a professional, personalized and persuasive proposal in the same language as the project description.\n" +
+        "CRITICAL: Detect the language of the project title and description, then write the entire proposal in that SAME language.\n" +
+        "If the project is in Spanish → respond in Spanish. If Portuguese → Portuguese. If English → English.\n" +
         "Maximum 300 words. Tone: confident, direct, no clichés.\n" +
         "Return only the proposal text, nothing else.",
       messages: [

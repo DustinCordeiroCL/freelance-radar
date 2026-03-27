@@ -20,7 +20,8 @@ export async function collect(keywords: string[] = []): Promise<RawProject[]> {
   const results: RawProject[] = [];
   const seenIds = new Set<string>();
 
-  const searchQuery = keywords.slice(0, 5).join(" ") || "desarrollo web";
+  // Use top 3 keywords to keep query focused; default to web development if no profile
+  const searchQuery = keywords.slice(0, 3).join(" ") || "desarrollo web";
   const url = `${BASE_URL}/trabajos?q=${encodeURIComponent(searchQuery)}`;
 
   try {
@@ -33,35 +34,38 @@ export async function collect(keywords: string[] = []): Promise<RawProject[]> {
 
     const $ = cheerio.load(response.data);
 
-    // SoyFreelancer lists jobs in article or li elements with job data
-    $("article, .job-item, .project-item, li[data-id]").each((_, el) => {
+    // Try multiple selector strategies in order of specificity
+    let found = false;
+
+    // Strategy 1: links directly to /trabajos/:id (most reliable)
+    $("a[href*='/trabajos/']").each((_, el) => {
       const element = $(el);
-
-      const idAttr = element.attr("data-id") ?? element.attr("id") ?? "";
-      const linkEl = element.find("a[href*='/trabajos/']").first();
-      const href = linkEl.attr("href") ?? "";
-
+      const href = element.attr("href") ?? "";
       const idFromHref = href.match(/\/trabajos\/(\d+)/)?.[1];
-      const externalId = idFromHref ?? idAttr;
 
-      if (!externalId || seenIds.has(externalId)) return;
-      seenIds.add(externalId);
+      if (!idFromHref || seenIds.has(idFromHref)) return;
 
-      const title = linkEl.text().trim() || element.find("h2, h3, .title").first().text().trim();
-      if (!title) return;
+      // Try to get the parent container for more context
+      const container = element.closest("article, li, div.job, div.project, .card, [class*='job'], [class*='project']");
+      const title = element.text().trim() || container.find("h2, h3, .title, [class*='title']").first().text().trim();
 
-      const description = element.find("p, .description, .excerpt").first().text().trim();
-      const budget = element.find(".budget, .price, [class*='budget'], [class*='price']").first().text().trim() || undefined;
+      if (!title || title.length < 5) return;
+
+      seenIds.add(idFromHref);
+      found = true;
+
+      const description = container.find("p, .description, .excerpt, [class*='desc']").first().text().trim();
+      const budget = container.find("[class*='budget'], [class*='price'], [class*='valor']").first().text().trim() || undefined;
       const tagsRaw: string[] = [];
-      element.find(".tag, .skill, .category, [class*='tag'], [class*='skill']").each((_, t) => {
+      container.find(".tag, .skill, .category, [class*='tag'], [class*='skill'], [class*='category']").each((_, t) => {
         const tag = $(t).text().trim();
-        if (tag) tagsRaw.push(tag);
+        if (tag && tag.length < 50) tagsRaw.push(tag);
       });
 
       const jobUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`;
 
       results.push({
-        externalId,
+        externalId: idFromHref,
         title,
         description: description || title,
         url: jobUrl,
@@ -70,30 +74,11 @@ export async function collect(keywords: string[] = []): Promise<RawProject[]> {
       });
     });
 
-    // Fallback: look for links to individual job pages if structured elements not found
-    if (results.length === 0) {
-      $("a[href*='/trabajos/']").each((_, el) => {
-        const element = $(el);
-        const href = element.attr("href") ?? "";
-        const idFromHref = href.match(/\/trabajos\/(\d+)/)?.[1];
-
-        if (!idFromHref || seenIds.has(idFromHref)) return;
-        seenIds.add(idFromHref);
-
-        const title = element.text().trim();
-        if (!title || title.length < 5) return;
-
-        const jobUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`;
-        results.push({
-          externalId: idFromHref,
-          title,
-          description: title,
-          url: jobUrl,
-        });
-      });
+    if (!found) {
+      console.warn("[soyfreelancer] No jobs found — page structure may have changed or scraping was blocked");
+    } else {
+      console.log(`[soyfreelancer] Found ${results.length} projects for query: "${searchQuery}"`);
     }
-
-    console.log(`[soyfreelancer] Found ${results.length} projects for query: "${searchQuery}"`);
   } catch (err) {
     if (axios.isAxiosError(err) && (err.response?.status === 403 || err.response?.status === 429)) {
       console.warn("[soyfreelancer] Rate limited or blocked — skipping");

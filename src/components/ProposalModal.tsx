@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Copy, RefreshCw, Save, ExternalLink, Loader2 } from "lucide-react";
+import { Copy, RefreshCw, Save, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,14 +28,7 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
 
   useEffect(() => {
     if (!project) return;
-
-    if (project.proposalText) {
-      setProposalText(project.proposalText);
-    } else {
-      setProposalText("");
-      void generateProposal();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    setProposalText(project.proposalText ?? "");
   }, [project?.id]);
 
   async function generateProposal(): Promise<void> {
@@ -94,7 +87,7 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
 
   return (
     <Dialog open={!!project} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col gap-3">
         <DialogHeader>
           <div className="flex items-center gap-2 flex-wrap">
             {project && <PlatformBadge platform={project.platform} />}
@@ -105,20 +98,35 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
           </DialogTitle>
         </DialogHeader>
 
-        {/* Proposal textarea */}
-        <div className="flex-1 min-h-0 relative">
+        {/* Project description */}
+        {project?.description && (
+          <div className="text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2.5 max-h-32 overflow-y-auto leading-relaxed border border-border">
+            {project.description}
+          </div>
+        )}
+
+        {/* Proposal area */}
+        <div className="flex-1 min-h-0">
           {isGenerating ? (
-            <div className="flex flex-col items-center justify-center h-48 gap-3 text-muted-foreground">
+            <div className="flex flex-col items-center justify-center h-40 gap-3 text-muted-foreground border border-dashed border-border rounded-md">
               <Loader2 className="size-6 animate-spin" />
               <p className="text-sm">Generating proposal...</p>
             </div>
-          ) : (
+          ) : proposalText ? (
             <textarea
               value={proposalText}
               onChange={(e) => setProposalText(e.target.value)}
               placeholder="Proposal will appear here..."
-              className="w-full h-64 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              className="w-full h-52 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-40 gap-3 border border-dashed border-border rounded-md text-muted-foreground">
+              <p className="text-xs">No proposal generated yet</p>
+              <Button onClick={() => void generateProposal()} className="gap-2" size="sm">
+                <Sparkles className="size-4" />
+                Generate Proposal
+              </Button>
+            </div>
           )}
         </div>
 
@@ -134,38 +142,40 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
             Open on platform
           </a>
 
-          {/* Right: actions */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void generateProposal()}
-              disabled={isGenerating || isSaving}
-              className="gap-1.5"
-            >
-              <RefreshCw className={`size-3.5 ${isGenerating ? "animate-spin" : ""}`} />
-              Regenerate
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void copyProposal()}
-              disabled={!proposalText.trim() || isGenerating}
-              className="gap-1.5"
-            >
-              <Copy className="size-3.5" />
-              Copy
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => void saveProposal()}
-              disabled={!proposalText.trim() || isGenerating || isSaving}
-              className="gap-1.5"
-            >
-              {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
-              Save
-            </Button>
-          </div>
+          {/* Right: actions (only when proposal exists) */}
+          {proposalText && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void generateProposal()}
+                disabled={isGenerating || isSaving}
+                className="gap-1.5"
+              >
+                <RefreshCw className={`size-3.5 ${isGenerating ? "animate-spin" : ""}`} />
+                Regenerate
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void copyProposal()}
+                disabled={isGenerating}
+                className="gap-1.5"
+              >
+                <Copy className="size-3.5" />
+                Copy
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => void saveProposal()}
+                disabled={isGenerating || isSaving}
+                className="gap-1.5"
+              >
+                {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
+                Save
+              </Button>
+            </div>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

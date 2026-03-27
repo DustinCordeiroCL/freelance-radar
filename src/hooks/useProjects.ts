@@ -12,13 +12,26 @@ const DEFAULT_FILTERS: Filters = {
   sort: "date",
 };
 
+function parseBudgetValue(budget: string | null): number {
+  if (!budget) return -1;
+  // Remove thousand separators (dots and commas used as separators), then extract numbers
+  const normalized = budget.replace(/[.,]/g, "");
+  const numbers = normalized.match(/\d+/g);
+  if (!numbers) return -1;
+  return Math.max(...numbers.map(Number));
+}
+
 function sortProjects(projects: Project[], sort: Filters["sort"]): Project[] {
   const copy = [...projects];
   if (sort === "score") {
     return copy.sort((a, b) => (b.matchScore ?? -1) - (a.matchScore ?? -1));
   }
   if (sort === "value") {
-    return copy.sort((a, b) => (b.proposalValue ?? -1) - (a.proposalValue ?? -1));
+    return copy.sort((a, b) => {
+      const aVal = a.proposalValue ?? parseBudgetValue(a.budget);
+      const bVal = b.proposalValue ?? parseBudgetValue(b.budget);
+      return bVal - aVal;
+    });
   }
   // date: newest first (default API order)
   return copy.sort(
