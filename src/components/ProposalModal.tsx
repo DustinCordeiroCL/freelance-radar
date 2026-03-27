@@ -87,7 +87,7 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
 
   return (
     <Dialog open={!!project} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col gap-3">
+      <DialogContent className="max-w-4xl w-[90vw] max-h-[90vh] h-[85vh] flex flex-col gap-3">
         <DialogHeader>
           <div className="flex items-center gap-2 flex-wrap">
             {project && <PlatformBadge platform={project.platform} />}
@@ -100,7 +100,7 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
 
         {/* Project description */}
         {project?.description && (
-          <div className="text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2.5 max-h-32 overflow-y-auto leading-relaxed border border-border">
+          <div className="text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2.5 max-h-48 overflow-y-auto leading-relaxed border border-border">
             {project.description}
           </div>
         )}
@@ -117,7 +117,7 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
               value={proposalText}
               onChange={(e) => setProposalText(e.target.value)}
               placeholder="Proposal will appear here..."
-              className="w-full h-52 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              className="w-full h-full min-h-48 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-40 gap-3 border border-dashed border-border rounded-md text-muted-foreground">
