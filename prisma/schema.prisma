@@ -8,61 +8,58 @@ datasource db {
 }
 
 model Project {
-  id             String    @id @default(cuid())
-  platform       String
-  externalId     String
-  title          String
-  description    String
-  url            String
-  budget         String?
-  category       String?
-  tags           String?
-  country        String?
-  postedAt       DateTime?
-  isFavorite     Boolean   @default(false)
-  isDiscarded    Boolean   @default(false)
-  matchScore     Int?
-  scoreReason    String?
-
+  id              String    @id @default(cuid())
+  platform        String
+  externalId      String
+  title           String
+  description     String
+  url             String
+  budget          String?
+  category        String?
+  tags            String?
+  country         String?
+  postedAt        DateTime?
+  isFavorite      Boolean   @default(false)
+  isDiscarded     Boolean   @default(false)
+  matchScore      Int?
+  scoreReason     String?
   proposalStatus  String?
   proposalValue   Float?
   proposalText    String?
   statusUpdatedAt DateTime?
-
-  collectedAt DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  collectedAt     DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@unique([platform, externalId])
+  @@index([matchScore])
+  @@index([collectedAt])
+  @@index([platform])
+  @@index([isFavorite])
+  @@index([isDiscarded])
+  @@index([proposalStatus])
 }
 
 model Settings {
-  id Int @id @default(1)
-
-  intervalRSS      Int @default(30)
-  intervalAPI      Int @default(30)
-  intervalScraping Int @default(180)
-
-  activeWorkana    Boolean @default(true)
-  activeFreelancer Boolean @default(true)
-  active99Freelas  Boolean @default(true)
-  activeIndeed          Boolean @default(false)
-  activeSoyFreelancer   Boolean @default(false)
-  activeUpwork          Boolean @default(false)
-
-  followUpDays         Int @default(3)
-  scoreAlertThreshold  Int @default(70)
-
-  anthropicKey    String?
-  freelancerToken String?
-
-  profileSkills String?
-  profileTitles String?
+  id                  Int     @id @default(autoincrement())
+  intervalRSS         Int     @default(30)
+  intervalAPI         Int     @default(30)
+  intervalScraping    Int     @default(180)
+  activeWorkana       Boolean @default(true)
+  activeFreelancer    Boolean @default(true)
+  active99Freelas     Boolean @default(true)
+  activeIndeed        Boolean @default(false)
+  activeSoyFreelancer Boolean @default(false)
+  activeUpwork        Boolean @default(false)
+  followUpDays        Int     @default(3)
+  scoreAlertThreshold Int     @default(70)
+  anthropicKey        String?
+  freelancerToken     String?
+  profileSkills       String?
+  profileTitles       String?
 }
 
 model NotificationLog {
   id        String   @id @default(cuid())
-  projectId String
+  projectId String   @unique
   sentAt    DateTime @default(now())
-
-  @@unique([projectId])
 }

@@ -53,43 +53,47 @@ async function saveProjects(
   projects: RawProject[],
   keywords: string[]
 ): Promise<{ saved: number; skipped: number }> {
-  let saved = 0;
-  let skipped = 0;
+  const relevant = projects.filter((p) => p.preFiltered || isRelevant(p, keywords));
+  const skipped = projects.length - relevant.length;
 
-  for (const project of projects) {
-    if (!project.preFiltered && !isRelevant(project, keywords)) {
-      skipped++;
-      continue;
-    }
+  if (relevant.length === 0) return { saved: 0, skipped };
 
-    const existing = await prisma.project.findUnique({
-      where: { platform_externalId: { platform, externalId: project.externalId } },
-    });
+  // 1. Batch-check which externalIds already exist — 1 query instead of N
+  const incomingIds = relevant.map((p) => p.externalId);
+  const existing = await prisma.project.findMany({
+    where: { platform, externalId: { in: incomingIds } },
+    select: { externalId: true },
+  });
+  const existingSet = new Set(existing.map((e) => e.externalId));
 
-    if (existing) continue;
+  const newProjects = relevant.filter((p) => !existingSet.has(p.externalId));
+  if (newProjects.length === 0) return { saved: 0, skipped };
 
-    const created = await prisma.project.create({
-      data: {
-        platform,
-        externalId: project.externalId,
-        title: project.title,
-        description: project.description,
-        url: project.url,
-        budget: project.budget,
-        category: project.category,
-        tags: project.tags ? JSON.stringify(project.tags) : null,
-        country: project.country,
-        postedAt: project.postedAt,
-      },
-    });
+  // 2. Batch insert — 1 query instead of N
+  await prisma.project.createMany({
+    data: newProjects.map((p) => ({
+      platform,
+      externalId: p.externalId,
+      title: p.title,
+      description: p.description,
+      url: p.url,
+      budget: p.budget ?? null,
+      category: p.category ?? null,
+      tags: p.tags ? JSON.stringify(p.tags) : null,
+      country: p.country ?? null,
+      postedAt: p.postedAt ?? null,
+    })),
+    skipDuplicates: true,
+  });
 
-    // Add to sequential queue — avoids concurrent API calls
-    enqueueScore(created.id);
+  // 3. Fetch inserted IDs to enqueue scoring (createMany doesn't return records)
+  const inserted = await prisma.project.findMany({
+    where: { platform, externalId: { in: newProjects.map((p) => p.externalId) } },
+    select: { id: true },
+  });
+  for (const { id } of inserted) enqueueScore(id);
 
-    saved++;
-  }
-
-  return { saved, skipped };
+  return { saved: newProjects.length, skipped };
 }
 
 async function requeueStuckProjects(): Promise<void> {

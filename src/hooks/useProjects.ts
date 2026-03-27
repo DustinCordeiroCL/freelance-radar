@@ -14,7 +14,6 @@ const DEFAULT_FILTERS: Filters = {
 
 function parseBudgetValue(budget: string | null): number {
   if (!budget) return -1;
-  // Remove thousand separators (dots and commas used as separators), then extract numbers
   const normalized = budget.replace(/[.,]/g, "");
   const numbers = normalized.match(/\d+/g);
   if (!numbers) return -1;
@@ -33,7 +32,6 @@ function sortProjects(projects: Project[], sort: Filters["sort"]): Project[] {
       return bVal - aVal;
     });
   }
-  // date: newest first (default API order)
   return copy.sort(
     (a, b) => new Date(b.collectedAt).getTime() - new Date(a.collectedAt).getTime()
   );
@@ -52,8 +50,32 @@ export function useProjects(onlyFavorites = false): {
   const [isLoading, setIsLoading] = useState(true);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const projectsRef = useRef<Project[]>([]);
+  // Always holds the latest fetchProjects to avoid stale closures in the interval
+  const fetchRef = useRef<(silent: boolean) => Promise<Project[] | null>>(
+    async () => null
+  );
 
-  const fetchProjects = useCallback(async (silent = false) => {
+  function stopPolling() {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  }
+
+  function startPolling() {
+    if (pollingRef.current) return; // already running
+    pollingRef.current = setInterval(() => {
+      const hasUnscored = projectsRef.current.some((p) => p.matchScore === null);
+      if (!hasUnscored) {
+        // All projects scored — no need to keep polling
+        stopPolling();
+        return;
+      }
+      void fetchRef.current(true);
+    }, 5000);
+  }
+
+  const fetchProjects = useCallback(async (silent = false): Promise<Project[] | null> => {
     if (!silent) setIsLoading(true);
     try {
       const params = new URLSearchParams();
@@ -83,36 +105,40 @@ export function useProjects(onlyFavorites = false): {
       const sorted = sortProjects(data, filters.sort);
       setProjects(sorted);
       projectsRef.current = sorted;
-      return data;
+
+      // Auto-manage polling based on whether any project is still being scored
+      const hasUnscored = sorted.some((p) => p.matchScore === null);
+      if (hasUnscored) {
+        startPolling();
+      } else {
+        stopPolling();
+      }
+
+      return sorted;
     } catch (err) {
       console.error("Failed to fetch projects:", err);
       return null;
     } finally {
       if (!silent) setIsLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, onlyFavorites]);
 
-  // Initial fetch
+  // Keep fetchRef in sync so the interval always calls the latest version
+  useEffect(() => {
+    fetchRef.current = fetchProjects;
+  }, [fetchProjects]);
+
+  // Trigger fetch on filter changes; polling is managed inside fetchProjects
   useEffect(() => {
     void fetchProjects(false);
   }, [fetchProjects]);
 
-  // Poll silently every 5s while any project has matchScore === null.
-  // Uses a ref so the interval doesn't restart on every render.
+  // Cleanup on unmount
   useEffect(() => {
-    if (pollingRef.current) clearInterval(pollingRef.current);
-
-    pollingRef.current = setInterval(() => {
-      const hasUnscored = projectsRef.current.some((p) => p.matchScore === null);
-      if (hasUnscored) {
-        void fetchProjects(true);
-      }
-    }, 5000);
-
-    return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
-    };
-  }, [fetchProjects]);
+    return () => stopPolling();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function updateProject(updated: Partial<Project> & { id: string }): void {
     setProjects((prev) =>

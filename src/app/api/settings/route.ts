@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { invalidateProfileCache } from "@/lib/profile";
 
 async function getOrCreateSettings() {
   return prisma.settings.upsert({
@@ -65,6 +66,11 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
       where: { id: 1 },
       data: data as Parameters<typeof prisma.settings.update>[0]["data"],
     });
+
+    // Invalidate profile cache if skills or titles changed
+    if ("profileSkills" in data || "profileTitles" in data) {
+      invalidateProfileCache();
+    }
 
     return NextResponse.json(updated);
   } catch (err) {
