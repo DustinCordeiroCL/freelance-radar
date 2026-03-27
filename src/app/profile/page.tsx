@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Upload, Loader2, Save, X, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
 interface ParsedSuggestions {
@@ -14,6 +15,7 @@ interface ParsedSuggestions {
 interface SavedProfile {
   profileSkills: string | null;
   profileTitles: string | null;
+  excludeKeywords: string | null;
 }
 
 function CheckboxGroup({
@@ -64,6 +66,8 @@ export default function ProfilePage(): React.ReactElement {
   const [checkedSkills, setCheckedSkills] = useState<Set<string>>(new Set());
   const [savedProfile, setSavedProfile] = useState<SavedProfile | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [excludeInput, setExcludeInput] = useState("");
+  const excludeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     void fetch("/api/settings")
@@ -77,6 +81,48 @@ export default function ProfilePage(): React.ReactElement {
     if (next.has(item)) next.delete(item);
     else next.add(item);
     return next;
+  }
+
+  function getExcludeKeywords(): string[] {
+    return savedProfile?.excludeKeywords
+      ? (JSON.parse(savedProfile.excludeKeywords) as string[])
+      : [];
+  }
+
+  async function addExcludeKeyword(): Promise<void> {
+    const kw = excludeInput.trim();
+    if (!kw) return;
+    const current = getExcludeKeywords();
+    if (current.includes(kw)) return;
+    const updated = [...current, kw];
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ excludeKeywords: JSON.stringify(updated) }),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      setSavedProfile((prev) => prev ? { ...prev, excludeKeywords: JSON.stringify(updated) } : prev);
+      setExcludeInput("");
+      excludeInputRef.current?.focus();
+    } catch {
+      toast.error("Failed to save keyword");
+    }
+  }
+
+  async function removeExcludeKeyword(kw: string): Promise<void> {
+    const updated = getExcludeKeywords().filter((k) => k !== kw);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ excludeKeywords: updated.length > 0 ? JSON.stringify(updated) : null }),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      setSavedProfile((prev) => prev ? { ...prev, excludeKeywords: updated.length > 0 ? JSON.stringify(updated) : null } : prev);
+    } catch {
+      toast.error("Failed to remove keyword");
+    }
   }
 
   async function processFile(file: File): Promise<void> {
@@ -217,7 +263,8 @@ export default function ProfilePage(): React.ReactElement {
         )}
       </header>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-8 max-w-2xl">
+      <div className="flex-1 overflow-y-auto bg-background">
+      <div className="max-w-2xl p-6 space-y-8">
 
         {/* Current saved profile */}
         {hasProfile && !suggestions && (
@@ -270,6 +317,57 @@ export default function ProfilePage(): React.ReactElement {
             <Separator />
           </section>
         )}
+
+        {/* Keyword blacklist */}
+        <section className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-sm font-semibold mb-1">Keyword blacklist</h2>
+            <p className="text-xs text-muted-foreground mb-3">
+              Projects containing any of these keywords are automatically discarded during collection.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              ref={excludeInputRef}
+              value={excludeInput}
+              onChange={(e) => setExcludeInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void addExcludeKeyword(); } }}
+              placeholder="e.g. wordpress, php, logo design"
+              className="h-8 text-sm flex-1"
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void addExcludeKeyword()}
+              disabled={!excludeInput.trim()}
+            >
+              Add
+            </Button>
+          </div>
+          {getExcludeKeywords().length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {getExcludeKeywords().map((kw) => (
+                <span
+                  key={kw}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-destructive/10 text-destructive border border-destructive/20"
+                >
+                  {kw}
+                  <button
+                    onClick={() => void removeExcludeKeyword(kw)}
+                    className="hover:text-destructive/70 transition-colors"
+                    aria-label={`Remove ${kw}`}
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground italic">No excluded keywords</p>
+          )}
+          <Separator />
+        </section>
 
         {/* Upload area */}
         <section className="flex flex-col gap-3">
@@ -351,6 +449,7 @@ export default function ProfilePage(): React.ReactElement {
           </section>
         )}
 
+      </div>
       </div>
     </div>
   );

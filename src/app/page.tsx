@@ -21,7 +21,7 @@ export default function DashboardPage(): React.ReactElement {
   const [proposalTarget, setProposalTarget] = useState<Project | null>(null);
   const [viewMode, setViewMode] = useViewMode();
 
-  const { visible, sentinelRef, hasMore } = useInfiniteScroll(projects);
+  const { visible, sentinelRef, hasMore } = useInfiniteScroll(projects, filters);
 
   function handleProposalSaved(projectId: string, proposalText: string): void {
     updateProject({ id: projectId, proposalText });

@@ -194,7 +194,7 @@ Designed to run **locally only**. No deployment needed — just `npm run dev`.
 - [x] SoyFreelancer: Spanish job title used as search query (e.g. `"Desarrollador Backend"`) instead of raw skill names
 - [x] Indeed: confirmed blocked by Cloudflare Bot Management — disabled, connector preserved for future proxy solution
 - [x] Score polling: replaced broken `setTimeout` chain with `setInterval` + `projectsRef` pattern — scores now update live without page refresh
-- [x] Base font size increased to 15px for better desktop readability
+- [x] Base font size increased to 18px for better desktop readability
 
 ---
 
@@ -202,35 +202,35 @@ Designed to run **locally only**. No deployment needed — just `npm run dev`.
 
 > Database optimization, UX improvements, cost reduction, blacklist filtering, and 8 new platform integrations.
 
-- [ ] **Etapa 1** — Performance base
-  - [ ] Polling auto-deactivates when all projects are scored (currently runs indefinitely on a fixed interval)
-  - [ ] DB indexes on `matchScore`, `collectedAt`, `platform`, `isFavorite`, `isDiscarded`, `proposalStatus`
-  - [ ] `createMany` with `skipDuplicates` in `saveProjects` (eliminate N+1 DB queries per collect)
-  - [ ] Cache `profileContext` in memory during scoring queue (eliminate N identical DB reads per scoring batch)
+- [x] **Etapa 1** — Performance base
+  - [x] Polling auto-deactivates when all projects are scored (currently runs indefinitely on a fixed interval)
+  - [x] DB indexes on `matchScore`, `collectedAt`, `platform`, `isFavorite`, `isDiscarded`, `proposalStatus`
+  - [x] `createMany` with `skipDuplicates` in `saveProjects` (eliminate N+1 DB queries per collect)
+  - [x] Cache `profileContext` in memory during scoring queue (eliminate N identical DB reads per scoring batch)
 
-- [ ] **Etapa 2** — UX & Filters
-  - [ ] Infinite scroll (replace full list render)
-  - [ ] Remove score range slider; add "Hide unscored" toggle
-  - [ ] Hide inactive platform buttons in dashboard filter bar (driven by Settings)
-  - [ ] Filters persisted in URL query params (survive page refresh)
+- [x] **Etapa 2** — UX & Filters
+  - [x] Infinite scroll (replace full list render)
+  - [x] Remove score range slider; add "Hide unscored" toggle
+  - [x] Hide inactive platform buttons in dashboard filter bar (driven by Settings)
+  - [x] Filters persisted in URL query params (survive page refresh)
 
-- [ ] **Etapa 3** — Quality & Cost
-  - [ ] Keyword blacklist in Settings (`excludeKeywords[]`) — applied at collection time to filter irrelevant categories (e.g. "analista", "diseñador")
-  - [ ] Switch scoring model from Sonnet → Haiku (~95% cost reduction; proposal generation stays on Sonnet)
-  - [ ] Run connectors in parallel with `Promise.allSettled` (reduce total collection time)
-  - [ ] Extract shared `useProjectActions` hook from `ProjectCard` and `ProjectCardList`
+- [x] **Etapa 3** — Quality & Cost
+  - [x] Keyword blacklist in Settings (`excludeKeywords[]`) — applied at collection time to filter irrelevant categories (e.g. "analista", "diseñador")
+  - [x] Switch scoring model from Sonnet → Haiku (~95% cost reduction; proposal generation stays on Sonnet)
+  - [x] Run connectors in parallel with `Promise.allSettled` (reduce total collection time)
+  - [x] Extract shared `useProjectActions` hook from `ProjectCard` and `ProjectCardList`
 
-- [ ] **Etapa 4** — New integrations (easy — RSS / public JSON)
-  - [ ] **RemoteOK** — `GET remoteok.com/api` public JSON, global remote dev jobs, tag-filterable by stack
-  - [ ] **We Work Remotely** — RSS `/remote-programming-jobs.rss`, global
-  - [ ] **Remotive** — RSS `remotive.com/remote-jobs/feed/`, software-dev category
-  - [ ] **Trampos.co** — RSS, Brazilian tech/creative market
+- [x] **Etapa 4** — New integrations (easy — RSS / public JSON)
+  - [x] **RemoteOK** — `GET remoteok.com/api` public JSON, global remote dev jobs, tag-filterable by stack
+  - [x] **We Work Remotely** — RSS `/remote-programming-jobs.rss`, global
+  - [x] **Remotive** — RSS `remotive.com/remote-jobs/rss/software-dev`, software-dev category
+  - [x] **Trampos.co** — RSS, Brazilian tech/creative market
 
-- [ ] **Etapa 5** — New integrations (medium — scraping / public API)
-  - [ ] **Torre.co** — `POST /api/opportunities/_search` public JSON, Latin American market (ES/EN)
-  - [ ] **GetOnBoard** — Playwright scraping, leading tech platform in Chile/Latam
-  - [ ] **Programathor** — Playwright scraping, Brazilian dev-specific platform
-  - [ ] **Guru.com** — RSS by category, global freelance alternative
+- [x] **Etapa 5** — New integrations (medium — scraping / public API)
+  - [x] **Torre.co** — `POST search.torre.co/opportunities/_search`, Latin American market (ES/EN)
+  - [x] **GetOnBoard** — axios + cheerio scraping of `getonbrd.com/jobs/programming` (domain migrated from `getonboard.com`; server-rendered, no Playwright needed)
+  - [x] **Programathor** — Playwright scraping with slug-based URL (`/jobs-{keyword}`), Brazilian dev-specific platform
+  - [x] **Guru.com** — Blocked by Incapsula bot protection; connector preserved but recommended to keep disabled in Settings
 
 ---
 

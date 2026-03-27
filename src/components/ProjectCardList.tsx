@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Star, Trash2, ExternalLink, FileText, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
 import { ScoreBadge } from "./ScoreBadge";
 import { PlatformBadge } from "./PlatformBadge";
 import { StatusBadge } from "./StatusBadge";
+import { useProjectActions } from "@/hooks/useProjectActions";
 import type { Project, ProposalStatus } from "@/types/project";
 
 interface ProjectCardListProps {
@@ -24,60 +23,12 @@ const STATUS_OPTIONS: Array<{ value: ProposalStatus | ""; label: string }> = [
 ];
 
 export function ProjectCardList({ project, onUpdate, onViewDetails, index }: ProjectCardListProps): React.ReactElement {
-  const [isUpdating, setIsUpdating] = useState(false);
+  const { isUpdating, toggleFavorite, toggleDiscard, handleStatusChange } =
+    useProjectActions(project, onUpdate);
 
   const relativeTime = project.postedAt
     ? formatDistanceToNow(new Date(project.postedAt), { addSuffix: true })
     : formatDistanceToNow(new Date(project.collectedAt), { addSuffix: true });
-
-  async function toggleFavorite(): Promise<void> {
-    setIsUpdating(true);
-    try {
-      const res = await fetch(`/api/projects/${project.id}/favorite`, { method: "PATCH" });
-      if (!res.ok) throw new Error();
-      const data = (await res.json()) as { isFavorite: boolean };
-      onUpdate({ id: project.id, isFavorite: data.isFavorite });
-      toast.success(data.isFavorite ? "Added to favorites" : "Removed from favorites");
-    } catch {
-      toast.error("Failed to update favorite");
-    } finally {
-      setIsUpdating(false);
-    }
-  }
-
-  async function toggleDiscard(): Promise<void> {
-    setIsUpdating(true);
-    try {
-      const res = await fetch(`/api/projects/${project.id}/discard`, { method: "PATCH" });
-      if (!res.ok) throw new Error();
-      const data = (await res.json()) as { isDiscarded: boolean };
-      onUpdate({ id: project.id, isDiscarded: data.isDiscarded });
-      toast.success(data.isDiscarded ? "Project discarded" : "Project restored");
-    } catch {
-      toast.error("Failed to update project");
-    } finally {
-      setIsUpdating(false);
-    }
-  }
-
-  async function handleStatusChange(value: string): Promise<void> {
-    setIsUpdating(true);
-    try {
-      const res = await fetch(`/api/projects/${project.id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ proposalStatus: value || null }),
-      });
-      if (!res.ok) throw new Error();
-      const data = (await res.json()) as { proposalStatus: string | null };
-      onUpdate({ id: project.id, proposalStatus: data.proposalStatus });
-      toast.success("Status updated");
-    } catch {
-      toast.error("Failed to update status");
-    } finally {
-      setIsUpdating(false);
-    }
-  }
 
   return (
     <div className={`flex items-center gap-3 px-4 py-3 border-b border-border bg-card hover:bg-accent/30 transition-colors ${project.isDiscarded ? "opacity-50" : ""}`}>

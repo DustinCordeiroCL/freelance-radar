@@ -1,13 +1,18 @@
 "use client";
 
-import { LayoutGrid, List } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, LayoutGrid, List } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { DEFAULT_FILTERS } from "@/hooks/useProjects";
 import type { Filters } from "@/types/project";
 import type { ViewMode } from "@/hooks/useViewMode";
 
-const ALL_PLATFORMS = ["workana", "freelancer", "99freelas", "indeed", "soyfreelancer", "upwork"];
+const ALL_PLATFORMS = [
+  "workana", "freelancer", "99freelas", "indeed",
+  "soyfreelancer", "upwork", "remoteok", "weworkremotely",
+  "remotive", "trampos", "torre", "getonboard", "programathor", "guru",
+];
 const PLATFORM_LABELS: Record<string, string> = {
   workana: "Workana",
   freelancer: "Freelancer",
@@ -15,6 +20,14 @@ const PLATFORM_LABELS: Record<string, string> = {
   indeed: "Indeed",
   soyfreelancer: "SoyFreelancer",
   upwork: "Upwork",
+  remoteok: "RemoteOK",
+  weworkremotely: "WeWorkRemotely",
+  remotive: "Remotive",
+  trampos: "Trampos",
+  torre: "Torre.co",
+  getonboard: "GetOnBoard",
+  programathor: "Programathor",
+  guru: "Guru.com",
 };
 const PROPOSAL_STATUSES = [
   { value: "none", label: "Sem proposta" },
@@ -39,6 +52,78 @@ function isActive(filters: Filters): boolean {
   );
 }
 
+interface MultiSelectDropdownProps {
+  label: string;
+  options: { value: string; label: string }[];
+  selected: string[];
+  onChange: (selected: string[]) => void;
+}
+
+function MultiSelectDropdown({ label, options, selected, onChange }: MultiSelectDropdownProps): React.ReactElement {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent): void {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  function toggle(value: string): void {
+    onChange(
+      selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]
+    );
+  }
+
+  const summary =
+    selected.length === 0
+      ? label
+      : selected.length === 1
+        ? (options.find((o) => o.value === selected[0])?.label ?? label)
+        : `${label} (${selected.length})`;
+
+  const isFiltered = selected.length > 0;
+
+  return (
+    <div ref={ref} className="relative flex flex-col gap-1">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-1.5 h-8 px-2.5 rounded text-xs border transition-colors whitespace-nowrap ${
+          isFiltered
+            ? "bg-primary text-primary-foreground border-primary"
+            : "bg-background text-muted-foreground border-border hover:border-primary"
+        }`}
+      >
+        {summary}
+        <ChevronDown className={`size-3 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="absolute top-full mt-1 left-0 z-50 min-w-44 bg-card border border-border rounded shadow-lg py-1">
+          {options.map(({ value, label: optLabel }) => (
+            <label
+              key={value}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-accent transition-colors"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(value)}
+                onChange={() => toggle(value)}
+                className="size-3 accent-primary"
+              />
+              {optLabel}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface FilterBarProps {
   filters: Filters;
   onChange: (filters: Filters) => void;
@@ -55,12 +140,12 @@ function toggleItem(arr: string[], value: string): string[] {
 
 function btnClass(active: boolean, variant?: "destructive"): string {
   if (active && variant === "destructive") {
-    return "px-2 py-1 rounded text-xs border transition-colors bg-destructive/10 text-destructive border-destructive/30";
+    return "h-8 px-2.5 rounded text-xs border transition-colors bg-destructive/10 text-destructive border-destructive/30";
   }
   if (active) {
-    return "px-2 py-1 rounded text-xs border transition-colors bg-primary text-primary-foreground border-primary";
+    return "h-8 px-2.5 rounded text-xs border transition-colors bg-primary text-primary-foreground border-primary";
   }
-  return "px-2 py-1 rounded text-xs border transition-colors bg-background text-muted-foreground border-border hover:border-primary";
+  return "h-8 px-2.5 rounded text-xs border transition-colors bg-background text-muted-foreground border-border hover:border-primary";
 }
 
 export function FilterBar({
@@ -71,14 +156,18 @@ export function FilterBar({
   onViewModeChange,
   activePlatforms,
 }: FilterBarProps): React.ReactElement {
-  // Show only platforms that have an active connector; fall back to all if not loaded yet
   const visiblePlatforms =
     activePlatforms && activePlatforms.length > 0
       ? ALL_PLATFORMS.filter((p) => activePlatforms.includes(p))
       : ALL_PLATFORMS;
 
+  const platformOptions = visiblePlatforms.map((p) => ({
+    value: p,
+    label: PLATFORM_LABELS[p] ?? p,
+  }));
+
   return (
-    <div className="flex flex-wrap gap-4 items-end p-4 border-b border-border bg-card">
+    <div className="flex flex-wrap gap-3 items-end p-4 border-b border-border bg-card">
       {/* Search */}
       <div className="flex flex-col gap-1 min-w-48">
         <Label className="text-xs text-muted-foreground">Search</Label>
@@ -90,42 +179,30 @@ export function FilterBar({
         />
       </div>
 
-      {/* Platform multi-select — only active connectors */}
+      {/* Platform multiselect dropdown */}
       <div className="flex flex-col gap-1">
         <Label className="text-xs text-muted-foreground">Platform</Label>
-        <div className="flex gap-1 flex-wrap">
-          {visiblePlatforms.map((p) => (
-            <button
-              key={p}
-              onClick={() => onChange({ ...filters, platforms: toggleItem(filters.platforms, p) })}
-              className={btnClass(filters.platforms.includes(p))}
-            >
-              {PLATFORM_LABELS[p]}
-            </button>
-          ))}
-        </div>
+        <MultiSelectDropdown
+          label="Platform"
+          options={platformOptions}
+          selected={filters.platforms}
+          onChange={(platforms) => onChange({ ...filters, platforms })}
+        />
       </div>
 
-      {/* Proposal status multi-select */}
+      {/* Proposal status multiselect dropdown */}
       <div className="flex flex-col gap-1">
         <Label className="text-xs text-muted-foreground">Proposal status</Label>
-        <div className="flex gap-1 flex-wrap">
-          {PROPOSAL_STATUSES.map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() =>
-                onChange({ ...filters, proposalStatuses: toggleItem(filters.proposalStatuses, value) })
-              }
-              className={btnClass(filters.proposalStatuses.includes(value))}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <MultiSelectDropdown
+          label="Status"
+          options={PROPOSAL_STATUSES}
+          selected={filters.proposalStatuses}
+          onChange={(proposalStatuses) => onChange({ ...filters, proposalStatuses })}
+        />
       </div>
 
-      {/* Toggles row */}
-      <div className="flex items-center gap-2">
+      {/* Toggles */}
+      <div className="flex items-end gap-2">
         <button
           onClick={() => onChange({ ...filters, hideUnscored: !filters.hideUnscored })}
           className={btnClass(filters.hideUnscored)}
@@ -156,7 +233,7 @@ export function FilterBar({
         </div>
       </div>
 
-      {/* Right side — count, view toggle, reset */}
+      {/* Right side */}
       <div className="flex items-center gap-3 ml-auto">
         {total !== undefined && (
           <span className="text-xs text-muted-foreground">
@@ -186,7 +263,7 @@ export function FilterBar({
         {isActive(filters) && (
           <button
             onClick={() => onChange(DEFAULT_FILTERS)}
-            className="px-2 py-1 rounded text-xs border border-border text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
+            className="h-8 px-2.5 rounded text-xs border border-border text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
           >
             Reset filters
           </button>

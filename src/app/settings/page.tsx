@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Save, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,10 +20,20 @@ interface Settings {
   activeIndeed: boolean;
   activeSoyFreelancer: boolean;
   activeUpwork: boolean;
+  activeRemoteOK: boolean;
+  activeWeWorkRemotely: boolean;
+  activeRemotive: boolean;
+  activeTrampos: boolean;
+  activeTorre: boolean;
+  activeGetOnBoard: boolean;
+  activeProgramathor: boolean;
+  activeGuru: boolean;
   followUpDays: number;
   scoreAlertThreshold: number;
   anthropicKey: string | null;
   freelancerToken: string | null;
+  profileSkills: string | null;
+  profileTitles: string | null;
 }
 
 const CONNECTOR_INFO = [
@@ -33,6 +43,14 @@ const CONNECTOR_INFO = [
   { key: "activeIndeed", label: "Indeed Chile", type: "Scraping" },
   { key: "activeSoyFreelancer", label: "SoyFreelancer", type: "Scraping (CL)" },
   { key: "activeUpwork", label: "Upwork", type: "RSS feed" },
+  { key: "activeRemoteOK", label: "RemoteOK", type: "Public JSON API" },
+  { key: "activeWeWorkRemotely", label: "We Work Remotely", type: "RSS feed" },
+  { key: "activeRemotive", label: "Remotive", type: "RSS feed" },
+  { key: "activeTrampos", label: "Trampos.co", type: "JSON API (BR)" },
+  { key: "activeTorre", label: "Torre.co", type: "JSON API (Latam)" },
+  { key: "activeGetOnBoard", label: "GetOnBoard", type: "Scraping (CL/Latam)" },
+  { key: "activeProgramathor", label: "Programathor", type: "Scraping (BR)" },
+  { key: "activeGuru", label: "Guru.com", type: "RSS feed" },
 ] as const;
 
 function ApiKeyInput({
@@ -106,6 +124,14 @@ export default function SettingsPage(): React.ReactElement {
           activeIndeed: settings.activeIndeed,
           activeSoyFreelancer: settings.activeSoyFreelancer,
           activeUpwork: settings.activeUpwork,
+          activeRemoteOK: settings.activeRemoteOK,
+          activeWeWorkRemotely: settings.activeWeWorkRemotely,
+          activeRemotive: settings.activeRemotive,
+          activeTrampos: settings.activeTrampos,
+          activeTorre: settings.activeTorre,
+          activeGetOnBoard: settings.activeGetOnBoard,
+          activeProgramathor: settings.activeProgramathor,
+          activeGuru: settings.activeGuru,
           followUpDays: settings.followUpDays,
           scoreAlertThreshold: settings.scoreAlertThreshold,
           anthropicKey: anthropicKey || null,
@@ -139,7 +165,8 @@ export default function SettingsPage(): React.ReactElement {
         </Button>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-8 max-w-2xl">
+      <div className="flex-1 overflow-y-auto bg-background">
+        <div className="max-w-2xl p-6 space-y-8">
 
         {/* API Keys */}
         <section>
@@ -328,6 +355,8 @@ export default function SettingsPage(): React.ReactElement {
           </div>
         </section>
 
+
+        </div>
       </div>
     </div>
   );

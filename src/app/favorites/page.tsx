@@ -15,7 +15,7 @@ export default function FavoritesPage(): React.ReactElement {
   const { projects, filters, isLoading, setFilters, updateProject } = useProjects(true);
   const [proposalTarget, setProposalTarget] = useState<Project | null>(null);
   const [viewMode, setViewMode] = useViewMode();
-  const { visible, sentinelRef, hasMore } = useInfiniteScroll(projects);
+  const { visible, sentinelRef, hasMore } = useInfiniteScroll(projects, filters);
 
   function handleProposalSaved(projectId: string, proposalText: string): void {
     updateProject({ id: projectId, proposalText });

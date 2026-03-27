@@ -14,6 +14,14 @@ const PLATFORM_FLAGS: Array<{ flag: string; name: string }> = [
   { flag: "activeIndeed", name: "indeed" },
   { flag: "activeSoyFreelancer", name: "soyfreelancer" },
   { flag: "activeUpwork", name: "upwork" },
+  { flag: "activeRemoteOK", name: "remoteok" },
+  { flag: "activeWeWorkRemotely", name: "weworkremotely" },
+  { flag: "activeRemotive", name: "remotive" },
+  { flag: "activeTrampos", name: "trampos" },
+  { flag: "activeTorre", name: "torre" },
+  { flag: "activeGetOnBoard", name: "getonboard" },
+  { flag: "activeProgramathor", name: "programathor" },
+  { flag: "activeGuru", name: "guru" },
 ];
 
 export function useSettings(): SettingsState {

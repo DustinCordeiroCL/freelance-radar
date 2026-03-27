@@ -50,12 +50,21 @@ model Settings {
   activeIndeed        Boolean @default(false)
   activeSoyFreelancer Boolean @default(false)
   activeUpwork        Boolean @default(false)
+  activeRemoteOK      Boolean @default(false)
+  activeWeWorkRemotely Boolean @default(false)
+  activeRemotive      Boolean @default(false)
+  activeTrampos       Boolean @default(false)
+  activeTorre         Boolean @default(false)
+  activeGetOnBoard    Boolean @default(false)
+  activeProgramathor  Boolean @default(false)
+  activeGuru          Boolean @default(false)
   followUpDays        Int     @default(3)
   scoreAlertThreshold Int     @default(70)
   anthropicKey        String?
   freelancerToken     String?
   profileSkills       String?
   profileTitles       String?
+  excludeKeywords     String?
 }
 
 model NotificationLog {

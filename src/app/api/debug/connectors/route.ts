@@ -40,7 +40,7 @@ export async function GET(): Promise<NextResponse> {
         jobLinks.push({
           href,
           linkText,
-          containerTag: container.length ? container.get(0)?.tagName ?? "none" : "none",
+          containerTag: container.length ? ((container.get(0) as { tagName?: string } | undefined)?.tagName ?? "none") : "none",
           containerClasses: container.length ? (container.attr("class") ?? "") : "",
           containerHtml: container.length ? (container.html()?.slice(0, 500) ?? "") : parentEl.html()?.slice(0, 500) ?? "",
           h2: container.find("h2").first().text().trim(),

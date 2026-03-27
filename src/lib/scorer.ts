@@ -22,7 +22,7 @@ async function callScoreApi(project: ProjectData): Promise<ScoreResult> {
   const profileContext = await getProfileContext();
 
   const message = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 256,
     system:
       "You are a compatibility evaluator between a developer and a freelance project.\n" +

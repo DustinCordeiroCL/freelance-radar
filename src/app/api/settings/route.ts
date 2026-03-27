@@ -41,8 +41,17 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     "freelancerToken",
     "profileSkills",
     "profileTitles",
+    "excludeKeywords",
     "activeSoyFreelancer",
     "activeUpwork",
+    "activeRemoteOK",
+    "activeWeWorkRemotely",
+    "activeRemotive",
+    "activeTrampos",
+    "activeTorre",
+    "activeGetOnBoard",
+    "activeProgramathor",
+    "activeGuru",
     "scoreAlertThreshold",
   ] as const;
 
@@ -68,7 +77,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     });
 
     // Invalidate profile cache if skills or titles changed
-    if ("profileSkills" in data || "profileTitles" in data) {
+    if ("profileSkills" in data || "profileTitles" in data || "excludeKeywords" in data) {
       invalidateProfileCache();
     }
 
