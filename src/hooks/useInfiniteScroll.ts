@@ -4,7 +4,11 @@ import { useState, useEffect, useRef } from "react";
 
 const PAGE_SIZE = 30;
 
-export function useInfiniteScroll<T>(items: T[], resetKey?: unknown): {
+export function useInfiniteScroll<T>(
+  items: T[],
+  resetKey?: unknown,
+  containerRef?: React.RefObject<HTMLElement | null>,
+): {
   visible: T[];
   sentinelRef: React.RefObject<HTMLDivElement | null>;
   hasMore: boolean;
@@ -37,7 +41,7 @@ export function useInfiniteScroll<T>(items: T[], resetKey?: unknown): {
           setCount((c) => Math.min(c + PAGE_SIZE, items.length));
         }
       },
-      { rootMargin: "300px" }
+      { root: containerRef?.current ?? null, rootMargin: "300px" }
     );
 
     observer.observe(el);

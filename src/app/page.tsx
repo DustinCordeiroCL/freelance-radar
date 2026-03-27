@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FilterBar } from "@/components/FilterBar";
@@ -20,8 +20,9 @@ export default function DashboardPage(): React.ReactElement {
   const { activePlatforms } = useSettings();
   const [proposalTarget, setProposalTarget] = useState<Project | null>(null);
   const [viewMode, setViewMode] = useViewMode();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const { visible, sentinelRef, hasMore } = useInfiniteScroll(projects, filters);
+  const { visible, sentinelRef, hasMore } = useInfiniteScroll(projects, filters, scrollContainerRef);
 
   function handleProposalSaved(projectId: string, proposalText: string): void {
     updateProject({ id: projectId, proposalText });
@@ -58,7 +59,7 @@ export default function DashboardPage(): React.ReactElement {
         activePlatforms={activePlatforms}
       />
 
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         {isLoading || isCollecting ? (
           <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
             {isCollecting ? "Collecting new projects..." : "Loading projects..."}
