@@ -40,11 +40,11 @@ export async function collect(keywords: string[] = []): Promise<RawProject[]> {
 
     const $ = cheerio.load(html);
 
-    // Collect all job links — try multiple URL patterns
-    $("a[href*='/trabajos/'], a[href*='/trabajo/'], a[href*='trabajos-freelance/']").each((_, el) => {
+    // Job URLs follow pattern: /trabajos-freelance/job/<alphanumericId>
+    $("a[href*='/trabajos-freelance/job/']").each((_, el) => {
       const element = $(el);
       const href = element.attr("href") ?? "";
-      const idFromHref = href.match(/\/(?:trabajos|trabajo|trabajos-freelance)\/(\d+)/)?.[1];
+      const idFromHref = href.match(/\/trabajos-freelance\/job\/([a-zA-Z0-9]+)/)?.[1];
 
       if (!idFromHref || seenIds.has(idFromHref)) return;
 
