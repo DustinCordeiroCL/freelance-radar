@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { scoreProject } from "@/lib/scorer";
+import { enqueueScore } from "@/lib/scoringQueue";
 import { collect as collectWorkana } from "./workana";
 import { collect as collectNinetyNine } from "./ninetyNine";
 import { collect as collectFreelancer } from "./freelancer";
@@ -83,8 +83,8 @@ async function saveProjects(
       },
     });
 
-    // Fire-and-forget: score asynchronously without blocking collection
-    void scoreProject(created.id);
+    // Add to sequential queue — avoids concurrent API calls
+    enqueueScore(created.id);
 
     saved++;
   }
@@ -92,11 +92,34 @@ async function saveProjects(
   return { saved, skipped };
 }
 
+async function requeueStuckProjects(): Promise<void> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const dbKey = await prisma.settings.findUnique({ where: { id: 1 }, select: { anthropicKey: true } });
+  if (!apiKey && !dbKey?.anthropicKey) return; // no key — skip
+
+  const stuck = await prisma.project.findMany({
+    where: { matchScore: null },
+    select: { id: true },
+    orderBy: { collectedAt: "desc" },
+    take: 50, // cap to avoid overwhelming the queue
+  });
+
+  if (stuck.length > 0) {
+    console.log(`[collect] Re-queuing ${stuck.length} stuck projects for scoring`);
+    for (const { id } of stuck) {
+      enqueueScore(id);
+    }
+  }
+}
+
 export async function runCollection(): Promise<CollectResult[]> {
   await ensureSettings();
 
   const settings = await prisma.settings.findUnique({ where: { id: 1 } });
   if (!settings) return [];
+
+  // Re-queue any projects that got stuck with null score from previous runs
+  void requeueStuckProjects();
 
   const keywords = await getProfileKeywords();
 
