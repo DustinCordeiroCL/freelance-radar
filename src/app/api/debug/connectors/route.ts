@@ -5,13 +5,8 @@ import * as cheerio from "cheerio";
 const TARGETS = [
   {
     name: "soyfreelancer",
-    url: "https://www.soyfreelancer.com/trabajos?q=desarrollo+web",
-    selector: "a[href*='/trabajos/']",
-  },
-  {
-    name: "indeed",
-    url: "https://cl.indeed.com/jobs?q=desarrollador+web&l=Chile&sort=date",
-    selector: "a[href*='viewjob'], a[data-jk], a[href*='/rc/clk']",
+    url: "https://www.soyfreelancer.com/trabajos-freelance?q=desarrollo+web",
+    selector: "a[href*='/trabajos/'], a[href*='/trabajo/'], a[href*='trabajos-freelance/']",
   },
 ];
 
