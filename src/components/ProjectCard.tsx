@@ -177,7 +177,7 @@ export function ProjectCard({ project, onUpdate, onGenerateProposal }: ProjectCa
         <div className="flex items-center gap-1">
           <button
             onClick={() => onGenerateProposal(project)}
-            title={project.proposalText ? "View saved proposal" : "Generate proposal"}
+            title="Ver descrição do projeto"
             className={`p-1.5 rounded hover:bg-accent transition-colors relative ${project.proposalText ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
           >
             <FileText className="size-4" />

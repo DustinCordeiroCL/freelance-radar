@@ -49,6 +49,7 @@ export default function FavoritesPage(): React.ReactElement {
                 key={project.id}
                 project={project}
                 onUpdate={updateProject}
+                onViewDetails={setProposalTarget}
               />
             ))}
           </div>

@@ -69,6 +69,7 @@ export default function DashboardPage(): React.ReactElement {
                 key={project.id}
                 project={project}
                 onUpdate={updateProject}
+                onViewDetails={setProposalTarget}
               />
             ))}
           </div>

@@ -34,24 +34,20 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
   async function generateProposal(): Promise<void> {
     if (!project) return;
     setIsGenerating(true);
-
     try {
       const res = await fetch("/api/proposal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ projectId: project.id }),
       });
-
       if (!res.ok) {
         const err = (await res.json()) as { error?: string };
         throw new Error(err.error ?? "Generation failed");
       }
-
       const data = (await res.json()) as { proposalText: string };
       setProposalText(data.proposalText);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      toast.error(`Failed to generate proposal: ${message}`);
+      toast.error(err instanceof Error ? err.message : "Failed to generate proposal");
     } finally {
       setIsGenerating(false);
     }
@@ -60,16 +56,13 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
   async function saveProposal(): Promise<void> {
     if (!project || !proposalText.trim()) return;
     setIsSaving(true);
-
     try {
       const res = await fetch(`/api/projects/${project.id}/proposal`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ proposalText }),
       });
-
       if (!res.ok) throw new Error("Save failed");
-
       onProposalSaved(project.id, proposalText);
       toast.success("Proposal saved");
     } catch {
@@ -87,51 +80,61 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
 
   return (
     <Dialog open={!!project} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-4xl w-[90vw] max-h-[90vh] h-[85vh] flex flex-col gap-3">
-        <DialogHeader>
+      {/* Override sm:max-w-sm from DialogContent with !important variants */}
+      <DialogContent className="!max-w-[92vw] w-[92vw] max-h-[90vh] h-[88vh] flex flex-col gap-0 p-0 overflow-hidden">
+
+        {/* Header */}
+        <DialogHeader className="px-5 pt-5 pb-3 border-b border-border shrink-0">
           <div className="flex items-center gap-2 flex-wrap">
             {project && <PlatformBadge platform={project.platform} />}
             {project && <ScoreBadge score={project.matchScore} />}
           </div>
-          <DialogTitle className="text-base font-semibold leading-snug mt-1">
+          <DialogTitle className="text-base font-semibold leading-snug mt-1 pr-6">
             {project?.title}
           </DialogTitle>
         </DialogHeader>
 
-        {/* Project description */}
-        {project?.description && (
-          <div className="text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2.5 max-h-48 overflow-y-auto leading-relaxed border border-border">
-            {project.description}
-          </div>
-        )}
+        {/* Two-panel body */}
+        <div className="flex flex-1 min-h-0 divide-x divide-border">
 
-        {/* Proposal area */}
-        <div className="flex-1 min-h-0">
-          {isGenerating ? (
-            <div className="flex flex-col items-center justify-center h-40 gap-3 text-muted-foreground border border-dashed border-border rounded-md">
-              <Loader2 className="size-6 animate-spin" />
-              <p className="text-sm">Generating proposal...</p>
+          {/* Left: project description */}
+          <div className="flex flex-col w-1/2 min-h-0">
+            <p className="text-xs font-medium text-muted-foreground px-4 pt-3 pb-2 shrink-0">Project description</p>
+            <div className="flex-1 overflow-y-auto px-4 pb-4 text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap">
+              {project?.description ?? "—"}
             </div>
-          ) : proposalText ? (
-            <textarea
-              value={proposalText}
-              onChange={(e) => setProposalText(e.target.value)}
-              placeholder="Proposal will appear here..."
-              className="w-full h-full min-h-48 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-40 gap-3 border border-dashed border-border rounded-md text-muted-foreground">
-              <p className="text-xs">No proposal generated yet</p>
-              <Button onClick={() => void generateProposal()} className="gap-2" size="sm">
-                <Sparkles className="size-4" />
-                Generate Proposal
-              </Button>
+          </div>
+
+          {/* Right: proposal */}
+          <div className="flex flex-col w-1/2 min-h-0">
+            <p className="text-xs font-medium text-muted-foreground px-4 pt-3 pb-2 shrink-0">Proposal</p>
+            <div className="flex-1 min-h-0 px-4 pb-4">
+              {isGenerating ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground border border-dashed border-border rounded-md">
+                  <Loader2 className="size-6 animate-spin" />
+                  <p className="text-sm">Generating proposal...</p>
+                </div>
+              ) : proposalText ? (
+                <textarea
+                  value={proposalText}
+                  onChange={(e) => setProposalText(e.target.value)}
+                  className="w-full h-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full gap-3 border border-dashed border-border rounded-md text-muted-foreground">
+                  <p className="text-xs">No proposal generated yet</p>
+                  <Button onClick={() => void generateProposal()} size="sm" className="gap-2">
+                    <Sparkles className="size-4" />
+                    Generate Proposal
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
-        <DialogFooter className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border">
-          {/* Left: open on platform */}
+        {/* Footer */}
+        <DialogFooter className="px-5 py-3 border-t border-border shrink-0 sm:justify-between">
           <a
             href={project?.url}
             target="_blank"
@@ -142,35 +145,17 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
             Open on platform
           </a>
 
-          {/* Right: actions (only when proposal exists) */}
           {proposalText && (
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => void generateProposal()}
-                disabled={isGenerating || isSaving}
-                className="gap-1.5"
-              >
+              <Button variant="outline" size="sm" onClick={() => void generateProposal()} disabled={isGenerating || isSaving} className="gap-1.5">
                 <RefreshCw className={`size-3.5 ${isGenerating ? "animate-spin" : ""}`} />
                 Regenerate
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => void copyProposal()}
-                disabled={isGenerating}
-                className="gap-1.5"
-              >
+              <Button variant="outline" size="sm" onClick={() => void copyProposal()} disabled={isGenerating} className="gap-1.5">
                 <Copy className="size-3.5" />
                 Copy
               </Button>
-              <Button
-                size="sm"
-                onClick={() => void saveProposal()}
-                disabled={isGenerating || isSaving}
-                className="gap-1.5"
-              >
+              <Button size="sm" onClick={() => void saveProposal()} disabled={isGenerating || isSaving} className="gap-1.5">
                 {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
                 Save
               </Button>

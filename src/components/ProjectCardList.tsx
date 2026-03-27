@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Star, Trash2, ExternalLink } from "lucide-react";
+import { Star, Trash2, ExternalLink, FileText, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { ScoreBadge } from "./ScoreBadge";
 import { PlatformBadge } from "./PlatformBadge";
@@ -12,6 +12,7 @@ import type { Project, ProposalStatus } from "@/types/project";
 interface ProjectCardListProps {
   project: Project;
   onUpdate: (updated: Partial<Project> & { id: string }) => void;
+  onViewDetails: (project: Project) => void;
 }
 
 const STATUS_OPTIONS: Array<{ value: ProposalStatus | ""; label: string }> = [
@@ -21,7 +22,7 @@ const STATUS_OPTIONS: Array<{ value: ProposalStatus | ""; label: string }> = [
   { value: "concluida", label: "Concluída" },
 ];
 
-export function ProjectCardList({ project, onUpdate }: ProjectCardListProps): React.ReactElement {
+export function ProjectCardList({ project, onUpdate, onViewDetails }: ProjectCardListProps): React.ReactElement {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const relativeTime = project.postedAt
@@ -120,6 +121,16 @@ export function ProjectCardList({ project, onUpdate }: ProjectCardListProps): Re
 
       {/* Actions */}
       <div className="flex items-center gap-0.5 shrink-0">
+        <button
+          onClick={() => onViewDetails(project)}
+          title="Ver descrição do projeto"
+          className={`p-1.5 rounded hover:bg-accent transition-colors relative ${project.proposalText ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          <FileText className="size-3.5" />
+          {project.proposalText && (
+            <CheckCircle2 className="size-2 absolute -top-0.5 -right-0.5 fill-primary text-primary-foreground" />
+          )}
+        </button>
         <a
           href={project.url}
           target="_blank"
