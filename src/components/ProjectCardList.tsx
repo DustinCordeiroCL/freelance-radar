@@ -13,6 +13,7 @@ interface ProjectCardListProps {
   project: Project;
   onUpdate: (updated: Partial<Project> & { id: string }) => void;
   onViewDetails: (project: Project) => void;
+  index?: number;
 }
 
 const STATUS_OPTIONS: Array<{ value: ProposalStatus | ""; label: string }> = [
@@ -22,7 +23,7 @@ const STATUS_OPTIONS: Array<{ value: ProposalStatus | ""; label: string }> = [
   { value: "concluida", label: "Concluída" },
 ];
 
-export function ProjectCardList({ project, onUpdate, onViewDetails }: ProjectCardListProps): React.ReactElement {
+export function ProjectCardList({ project, onUpdate, onViewDetails, index }: ProjectCardListProps): React.ReactElement {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const relativeTime = project.postedAt
@@ -80,6 +81,11 @@ export function ProjectCardList({ project, onUpdate, onViewDetails }: ProjectCar
 
   return (
     <div className={`flex items-center gap-3 px-4 py-3 border-b border-border bg-card hover:bg-accent/30 transition-colors ${project.isDiscarded ? "opacity-50" : ""}`}>
+      {/* Row number */}
+      {index !== undefined && (
+        <span className="text-xs text-muted-foreground/50 w-6 text-right shrink-0 tabular-nums">{index}</span>
+      )}
+
       {/* Badges */}
       <div className="flex items-center gap-1.5 shrink-0">
         <PlatformBadge platform={project.platform} />

@@ -64,12 +64,13 @@ export default function DashboardPage(): React.ReactElement {
           </div>
         ) : viewMode === "list" ? (
           <div className="flex flex-col">
-            {projects.map((project) => (
+            {projects.map((project, i) => (
               <ProjectCardList
                 key={project.id}
                 project={project}
                 onUpdate={updateProject}
                 onViewDetails={setProposalTarget}
+                index={i + 1}
               />
             ))}
           </div>
