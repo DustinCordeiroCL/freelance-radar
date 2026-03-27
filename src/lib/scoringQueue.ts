@@ -21,18 +21,18 @@ export function queueSize(): number {
   return queue.length;
 }
 
+const BATCH_SIZE = 3;
+const BATCH_DELAY_MS = 1000;
+
 async function processQueue(): Promise<void> {
   isProcessing = true;
   while (queue.length > 0) {
-    const id = queue.shift()!;
-    try {
-      await scoreProject(id);
-    } catch {
-      // scoreProject already handles its own errors — swallow here
-    }
-    // Small pause between calls to respect rate limits
+    const batch = queue.splice(0, BATCH_SIZE);
+    await Promise.all(
+      batch.map((id) => scoreProject(id).catch(() => { /* scoreProject handles its own errors */ }))
+    );
     if (queue.length > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY_MS));
     }
   }
   isProcessing = false;
