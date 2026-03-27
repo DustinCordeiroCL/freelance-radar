@@ -28,7 +28,7 @@ export type SortOption = "date" | "score" | "value";
 
 export interface Filters {
   platforms: string[];
-  minScore: number;
+  hideUnscored: boolean;
   search: string;
   proposalStatuses: string[];
   showDiscarded: boolean;

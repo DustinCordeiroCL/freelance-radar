@@ -83,7 +83,6 @@ async function saveProjects(
       country: p.country ?? null,
       postedAt: p.postedAt ?? null,
     })),
-    skipDuplicates: true,
   });
 
   // 3. Fetch inserted IDs to enqueue scoring (createMany doesn't return records)

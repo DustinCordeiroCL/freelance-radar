@@ -3,10 +3,11 @@
 import { LayoutGrid, List } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { DEFAULT_FILTERS } from "@/hooks/useProjects";
 import type { Filters } from "@/types/project";
 import type { ViewMode } from "@/hooks/useViewMode";
 
-const PLATFORMS = ["workana", "freelancer", "99freelas", "indeed", "soyfreelancer", "upwork"];
+const ALL_PLATFORMS = ["workana", "freelancer", "99freelas", "indeed", "soyfreelancer", "upwork"];
 const PLATFORM_LABELS: Record<string, string> = {
   workana: "Workana",
   freelancer: "Freelancer",
@@ -27,19 +28,10 @@ const SORT_OPTIONS = [
   { value: "value", label: "Value" },
 ];
 
-const DEFAULT_FILTERS: Filters = {
-  platforms: [],
-  minScore: 0,
-  search: "",
-  proposalStatuses: [],
-  showDiscarded: false,
-  sort: "date",
-};
-
 function isActive(filters: Filters): boolean {
   return (
     filters.platforms.length > 0 ||
-    filters.minScore > 0 ||
+    filters.hideUnscored ||
     filters.search !== "" ||
     filters.proposalStatuses.length > 0 ||
     filters.showDiscarded ||
@@ -53,13 +45,38 @@ interface FilterBarProps {
   total?: number;
   viewMode?: ViewMode;
   onViewModeChange?: (mode: ViewMode) => void;
+  /** Only platforms with active connectors are shown */
+  activePlatforms?: string[];
 }
 
 function toggleItem(arr: string[], value: string): string[] {
   return arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 }
 
-export function FilterBar({ filters, onChange, total, viewMode, onViewModeChange }: FilterBarProps): React.ReactElement {
+function btnClass(active: boolean, variant?: "destructive"): string {
+  if (active && variant === "destructive") {
+    return "px-2 py-1 rounded text-xs border transition-colors bg-destructive/10 text-destructive border-destructive/30";
+  }
+  if (active) {
+    return "px-2 py-1 rounded text-xs border transition-colors bg-primary text-primary-foreground border-primary";
+  }
+  return "px-2 py-1 rounded text-xs border transition-colors bg-background text-muted-foreground border-border hover:border-primary";
+}
+
+export function FilterBar({
+  filters,
+  onChange,
+  total,
+  viewMode,
+  onViewModeChange,
+  activePlatforms,
+}: FilterBarProps): React.ReactElement {
+  // Show only platforms that have an active connector; fall back to all if not loaded yet
+  const visiblePlatforms =
+    activePlatforms && activePlatforms.length > 0
+      ? ALL_PLATFORMS.filter((p) => activePlatforms.includes(p))
+      : ALL_PLATFORMS;
+
   return (
     <div className="flex flex-wrap gap-4 items-end p-4 border-b border-border bg-card">
       {/* Search */}
@@ -73,53 +90,20 @@ export function FilterBar({ filters, onChange, total, viewMode, onViewModeChange
         />
       </div>
 
-      {/* Platform multi-select */}
+      {/* Platform multi-select — only active connectors */}
       <div className="flex flex-col gap-1">
         <Label className="text-xs text-muted-foreground">Platform</Label>
         <div className="flex gap-1 flex-wrap">
-          {PLATFORMS.map((p) => (
+          {visiblePlatforms.map((p) => (
             <button
               key={p}
               onClick={() => onChange({ ...filters, platforms: toggleItem(filters.platforms, p) })}
-              className={`px-2 py-1 rounded text-xs border transition-colors ${
-                filters.platforms.includes(p)
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-background text-muted-foreground border-border hover:border-primary"
-              }`}
+              className={btnClass(filters.platforms.includes(p))}
             >
               {PLATFORM_LABELS[p]}
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Min score slider */}
-      <div className="flex flex-col gap-1.5 min-w-36">
-        <Label className="text-xs text-muted-foreground">
-          Min score: <span className="font-semibold text-foreground">{filters.minScore}</span>
-        </Label>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={5}
-          value={filters.minScore}
-          onChange={(e) => onChange({ ...filters, minScore: Number(e.target.value) })}
-          className="w-full h-1.5 rounded-full appearance-none cursor-pointer
-            bg-muted
-            [&::-webkit-slider-thumb]:appearance-none
-            [&::-webkit-slider-thumb]:size-3.5
-            [&::-webkit-slider-thumb]:rounded-full
-            [&::-webkit-slider-thumb]:bg-primary
-            [&::-webkit-slider-thumb]:border
-            [&::-webkit-slider-thumb]:border-border
-            [&::-webkit-slider-thumb]:cursor-pointer
-            [&::-moz-range-thumb]:size-3.5
-            [&::-moz-range-thumb]:rounded-full
-            [&::-moz-range-thumb]:bg-primary
-            [&::-moz-range-thumb]:border-0
-            [&::-moz-range-thumb]:cursor-pointer"
-        />
       </div>
 
       {/* Proposal status multi-select */}
@@ -132,11 +116,7 @@ export function FilterBar({ filters, onChange, total, viewMode, onViewModeChange
               onClick={() =>
                 onChange({ ...filters, proposalStatuses: toggleItem(filters.proposalStatuses, value) })
               }
-              className={`px-2 py-1 rounded text-xs border transition-colors ${
-                filters.proposalStatuses.includes(value)
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-background text-muted-foreground border-border hover:border-primary"
-              }`}
+              className={btnClass(filters.proposalStatuses.includes(value))}
             >
               {label}
             </button>
@@ -144,17 +124,19 @@ export function FilterBar({ filters, onChange, total, viewMode, onViewModeChange
         </div>
       </div>
 
-      {/* Show discarded */}
+      {/* Toggles row */}
       <div className="flex items-center gap-2">
         <button
-          onClick={() => onChange({ ...filters, showDiscarded: !filters.showDiscarded })}
-          className={`px-2 py-1 rounded text-xs border transition-colors ${
-            filters.showDiscarded
-              ? "bg-destructive/10 text-destructive border-destructive/30"
-              : "bg-background text-muted-foreground border-border hover:border-primary"
-          }`}
+          onClick={() => onChange({ ...filters, hideUnscored: !filters.hideUnscored })}
+          className={btnClass(filters.hideUnscored)}
         >
-          {filters.showDiscarded ? "Hiding discarded ✓" : "Show discarded"}
+          {filters.hideUnscored ? "Hide unscored ✓" : "Hide unscored"}
+        </button>
+        <button
+          onClick={() => onChange({ ...filters, showDiscarded: !filters.showDiscarded })}
+          className={btnClass(filters.showDiscarded, "destructive")}
+        >
+          {filters.showDiscarded ? "Showing discarded ✓" : "Show discarded"}
         </button>
       </div>
 
@@ -166,11 +148,7 @@ export function FilterBar({ filters, onChange, total, viewMode, onViewModeChange
             <button
               key={value}
               onClick={() => onChange({ ...filters, sort: value as Filters["sort"] })}
-              className={`px-2 py-1 rounded text-xs border transition-colors ${
-                filters.sort === value
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-background text-muted-foreground border-border hover:border-primary"
-              }`}
+              className={btnClass(filters.sort === value)}
             >
               {label}
             </button>
@@ -181,7 +159,9 @@ export function FilterBar({ filters, onChange, total, viewMode, onViewModeChange
       {/* Right side — count, view toggle, reset */}
       <div className="flex items-center gap-3 ml-auto">
         {total !== undefined && (
-          <span className="text-xs text-muted-foreground">{total} project{total !== 1 ? "s" : ""}</span>
+          <span className="text-xs text-muted-foreground">
+            {total} project{total !== 1 ? "s" : ""}
+          </span>
         )}
 
         {onViewModeChange && viewMode && (

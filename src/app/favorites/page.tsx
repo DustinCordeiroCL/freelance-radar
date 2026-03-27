@@ -1,18 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { FilterBar } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
 import { ProjectCardList } from "@/components/ProjectCardList";
 import { ProposalModal } from "@/components/ProposalModal";
 import { useProjects } from "@/hooks/useProjects";
 import { useViewMode } from "@/hooks/useViewMode";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import type { Project } from "@/types/project";
 
 export default function FavoritesPage(): React.ReactElement {
   const { projects, filters, isLoading, setFilters, updateProject } = useProjects(true);
   const [proposalTarget, setProposalTarget] = useState<Project | null>(null);
   const [viewMode, setViewMode] = useViewMode();
+  const { visible, sentinelRef, hasMore } = useInfiniteScroll(projects);
 
   function handleProposalSaved(projectId: string, proposalText: string): void {
     updateProject({ id: projectId, proposalText });
@@ -44,7 +47,7 @@ export default function FavoritesPage(): React.ReactElement {
           </div>
         ) : viewMode === "list" ? (
           <div className="flex flex-col">
-            {projects.map((project, i) => (
+            {visible.map((project, i) => (
               <ProjectCardList
                 key={project.id}
                 project={project}
@@ -53,10 +56,16 @@ export default function FavoritesPage(): React.ReactElement {
                 index={i + 1}
               />
             ))}
+            <div ref={sentinelRef} className="h-1" />
+            {hasMore && (
+              <div className="flex justify-center py-4 text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-6">
-            {projects.map((project) => (
+            {visible.map((project) => (
               <ProjectCard
                 key={project.id}
                 project={project}
@@ -64,6 +73,12 @@ export default function FavoritesPage(): React.ReactElement {
                 onGenerateProposal={setProposalTarget}
               />
             ))}
+            <div ref={sentinelRef} className="col-span-full h-1" />
+            {hasMore && (
+              <div className="col-span-full flex justify-center py-2 text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+              </div>
+            )}
           </div>
         )}
       </div>

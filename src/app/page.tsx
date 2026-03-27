@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FilterBar } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
@@ -10,13 +10,18 @@ import { ProposalModal } from "@/components/ProposalModal";
 import { useProjects } from "@/hooks/useProjects";
 import { useCollect } from "@/hooks/useCollect";
 import { useViewMode } from "@/hooks/useViewMode";
+import { useSettings } from "@/hooks/useSettings";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import type { Project } from "@/types/project";
 
 export default function DashboardPage(): React.ReactElement {
-  const { projects, filters, isLoading, setFilters, updateProject, reload } = useProjects();
+  const { projects, filters, isLoading, setFilters, updateProject, reload } = useProjects(false, true);
   const { isCollecting, trigger, lastCollectedAt } = useCollect(reload);
+  const { activePlatforms } = useSettings();
   const [proposalTarget, setProposalTarget] = useState<Project | null>(null);
   const [viewMode, setViewMode] = useViewMode();
+
+  const { visible, sentinelRef, hasMore } = useInfiniteScroll(projects);
 
   function handleProposalSaved(projectId: string, proposalText: string): void {
     updateProject({ id: projectId, proposalText });
@@ -50,6 +55,7 @@ export default function DashboardPage(): React.ReactElement {
         total={projects.length}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        activePlatforms={activePlatforms}
       />
 
       <div className="flex-1 overflow-y-auto">
@@ -64,7 +70,7 @@ export default function DashboardPage(): React.ReactElement {
           </div>
         ) : viewMode === "list" ? (
           <div className="flex flex-col">
-            {projects.map((project, i) => (
+            {visible.map((project, i) => (
               <ProjectCardList
                 key={project.id}
                 project={project}
@@ -73,10 +79,17 @@ export default function DashboardPage(): React.ReactElement {
                 index={i + 1}
               />
             ))}
+            {/* Infinite scroll sentinel */}
+            <div ref={sentinelRef} className="h-1" />
+            {hasMore && (
+              <div className="flex justify-center py-4 text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-6">
-            {projects.map((project) => (
+            {visible.map((project) => (
               <ProjectCard
                 key={project.id}
                 project={project}
@@ -84,6 +97,13 @@ export default function DashboardPage(): React.ReactElement {
                 onGenerateProposal={setProposalTarget}
               />
             ))}
+            {/* Infinite scroll sentinel */}
+            <div ref={sentinelRef} className="col-span-full h-1" />
+            {hasMore && (
+              <div className="col-span-full flex justify-center py-2 text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+              </div>
+            )}
           </div>
         )}
       </div>

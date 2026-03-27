@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { Project, Filters } from "@/types/project";
 
-const DEFAULT_FILTERS: Filters = {
+export const DEFAULT_FILTERS: Filters = {
   platforms: [],
-  minScore: 0,
+  hideUnscored: false,
   search: "",
   proposalStatuses: [],
   showDiscarded: false,
@@ -37,7 +37,35 @@ function sortProjects(projects: Project[], sort: Filters["sort"]): Project[] {
   );
 }
 
-export function useProjects(onlyFavorites = false): {
+/** Read initial filter state from the current URL search params */
+export function filtersFromUrl(): Filters {
+  if (typeof window === "undefined") return DEFAULT_FILTERS;
+  const p = new URLSearchParams(window.location.search);
+  return {
+    platforms: p.get("platforms") ? p.get("platforms")!.split(",") : [],
+    hideUnscored: p.get("hideUnscored") === "1",
+    search: p.get("search") ?? "",
+    proposalStatuses: p.get("statuses") ? p.get("statuses")!.split(",") : [],
+    showDiscarded: p.get("showDiscarded") === "1",
+    sort: (p.get("sort") as Filters["sort"]) ?? "date",
+  };
+}
+
+/** Sync filter state to URL without triggering navigation */
+function pushFiltersToUrl(filters: Filters): void {
+  const p = new URLSearchParams();
+  if (filters.platforms.length) p.set("platforms", filters.platforms.join(","));
+  if (filters.hideUnscored) p.set("hideUnscored", "1");
+  if (filters.search) p.set("search", filters.search);
+  if (filters.proposalStatuses.length) p.set("statuses", filters.proposalStatuses.join(","));
+  if (filters.showDiscarded) p.set("showDiscarded", "1");
+  if (filters.sort !== "date") p.set("sort", filters.sort);
+  const qs = p.toString();
+  const next = qs ? `?${qs}` : window.location.pathname;
+  window.history.replaceState(null, "", next);
+}
+
+export function useProjects(onlyFavorites = false, syncUrl = false): {
   projects: Project[];
   filters: Filters;
   isLoading: boolean;
@@ -46,14 +74,18 @@ export function useProjects(onlyFavorites = false): {
   reload: () => void;
 } {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [filters, setFiltersState] = useState<Filters>(
+    syncUrl ? filtersFromUrl() : DEFAULT_FILTERS
+  );
   const [isLoading, setIsLoading] = useState(true);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const projectsRef = useRef<Project[]>([]);
-  // Always holds the latest fetchProjects to avoid stale closures in the interval
-  const fetchRef = useRef<(silent: boolean) => Promise<Project[] | null>>(
-    async () => null
-  );
+  const fetchRef = useRef<(silent: boolean) => Promise<Project[] | null>>(async () => null);
+
+  function setFilters(f: Filters): void {
+    setFiltersState(f);
+    if (syncUrl) pushFiltersToUrl(f);
+  }
 
   function stopPolling() {
     if (pollingRef.current) {
@@ -63,11 +95,10 @@ export function useProjects(onlyFavorites = false): {
   }
 
   function startPolling() {
-    if (pollingRef.current) return; // already running
+    if (pollingRef.current) return;
     pollingRef.current = setInterval(() => {
       const hasUnscored = projectsRef.current.some((p) => p.matchScore === null);
       if (!hasUnscored) {
-        // All projects scored — no need to keep polling
         stopPolling();
         return;
       }
@@ -79,9 +110,6 @@ export function useProjects(onlyFavorites = false): {
     if (!silent) setIsLoading(true);
     try {
       const params = new URLSearchParams();
-
-      if (filters.platforms.length === 1) params.set("platform", filters.platforms[0]!);
-      if (filters.minScore > 0) params.set("minScore", String(filters.minScore));
       if (filters.search) params.set("search", filters.search);
       if (onlyFavorites) params.set("isFavorite", "true");
       if (filters.showDiscarded) params.set("isDiscarded", "true");
@@ -91,28 +119,28 @@ export function useProjects(onlyFavorites = false): {
 
       let data = (await res.json()) as Project[];
 
-      if (filters.platforms.length > 1) {
+      // Client-side filters (applied after fetch)
+      if (filters.platforms.length > 0) {
         data = data.filter((p) => filters.platforms.includes(p.platform));
       }
-
       if (filters.proposalStatuses.length > 0) {
         data = data.filter((p) => {
           const key = p.proposalStatus ?? "none";
           return filters.proposalStatuses.includes(key);
         });
       }
+      if (filters.hideUnscored) {
+        data = data.filter((p) => p.matchScore !== null);
+      }
 
       const sorted = sortProjects(data, filters.sort);
       setProjects(sorted);
       projectsRef.current = sorted;
 
-      // Auto-manage polling based on whether any project is still being scored
+      // Auto-manage polling
       const hasUnscored = sorted.some((p) => p.matchScore === null);
-      if (hasUnscored) {
-        startPolling();
-      } else {
-        stopPolling();
-      }
+      if (hasUnscored) startPolling();
+      else stopPolling();
 
       return sorted;
     } catch (err) {
@@ -124,17 +152,14 @@ export function useProjects(onlyFavorites = false): {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, onlyFavorites]);
 
-  // Keep fetchRef in sync so the interval always calls the latest version
   useEffect(() => {
     fetchRef.current = fetchProjects;
   }, [fetchProjects]);
 
-  // Trigger fetch on filter changes; polling is managed inside fetchProjects
   useEffect(() => {
     void fetchProjects(false);
   }, [fetchProjects]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => stopPolling();
   // eslint-disable-next-line react-hooks/exhaustive-deps
