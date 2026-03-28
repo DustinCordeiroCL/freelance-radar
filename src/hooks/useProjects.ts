@@ -134,8 +134,23 @@ export function useProjects(onlyFavorites = false, syncUrl = false): {
       }
 
       const sorted = sortProjects(data, filters.sort);
-      setProjects(sorted);
-      projectsRef.current = sorted;
+
+      if (silent) {
+        // Polling update: patch scores in-place to avoid re-ordering the list
+        // (re-ordering while scrolled down feels like the scroll jumping to top)
+        const scoreMap = new Map(data.map((p) => [p.id, p.matchScore]));
+        setProjects((prev) => {
+          const patched = prev.map((p) => {
+            const score = scoreMap.get(p.id);
+            return score !== undefined && score !== p.matchScore ? { ...p, matchScore: score } : p;
+          });
+          projectsRef.current = patched;
+          return patched;
+        });
+      } else {
+        setProjects(sorted);
+        projectsRef.current = sorted;
+      }
 
       // Auto-manage polling
       const hasUnscored = sorted.some((p) => p.matchScore === null);
