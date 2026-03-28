@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 
 const PAGE_SIZE = 30;
+const THRESHOLD_PX = 300;
 
 export function useInfiniteScroll<T>(
   items: T[],
@@ -18,34 +19,34 @@ export function useInfiniteScroll<T>(
 
   const hasMore = count < items.length;
 
-  // Reset only when filters change or the total number of items changes.
-  // Score/data updates on existing items don't change resetKey or items.length,
-  // so they won't collapse the scroll position.
+  // Reset when filters or total item count changes.
   const stableKey = JSON.stringify(resetKey) + ":" + String(items.length);
   useEffect(() => {
     setCount(PAGE_SIZE);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stableKey]);
 
-  // Reconnect the observer on every count change.
-  // This ensures that if the sentinel is still inside the intersection zone after
-  // a load (e.g. items are short / screen is tall), IntersectionObserver.observe()
-  // re-fires immediately with isIntersecting: true and loads the next batch.
+  // Scroll-based detection: more reliable than IntersectionObserver with a
+  // non-viewport root (avoids root=null fallback when containerRef is not
+  // yet populated at effect creation time).
   useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el || !hasMore) return;
+    const container = containerRef?.current;
+    if (!container || !hasMore) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setCount((c) => Math.min(c + PAGE_SIZE, items.length));
-        }
-      },
-      { root: containerRef?.current ?? null, rootMargin: "300px" }
-    );
+    function check() {
+      const sentinel = sentinelRef.current;
+      if (!sentinel) return;
+      const sentinelBottom = sentinel.getBoundingClientRect().bottom;
+      const containerBottom = container!.getBoundingClientRect().bottom;
+      if (sentinelBottom - containerBottom <= THRESHOLD_PX) {
+        setCount((c) => Math.min(c + PAGE_SIZE, items.length));
+      }
+    }
 
-    observer.observe(el);
-    return () => observer.disconnect();
+    container.addEventListener("scroll", check, { passive: true });
+    // Check immediately — sentinel may already be visible on first render.
+    check();
+    return () => container.removeEventListener("scroll", check);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [count, items.length, hasMore]);
 
