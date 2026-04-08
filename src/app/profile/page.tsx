@@ -186,10 +186,11 @@ export default function ProfilePage(): React.ReactElement {
         }),
       });
       if (!res.ok) throw new Error("Save failed");
-      setSavedProfile({
+      setSavedProfile((prev) => ({
+        excludeKeywords: prev?.excludeKeywords ?? null,
         profileSkills: JSON.stringify([...checkedSkills]),
         profileTitles: JSON.stringify([...checkedTitles]),
-      });
+      }));
       toast.success("Profile saved — AI scoring and proposals updated");
     } catch {
       toast.error("Failed to save profile");
@@ -211,10 +212,11 @@ export default function ProfilePage(): React.ReactElement {
         }),
       });
       if (!res.ok) throw new Error("Save failed");
-      setSavedProfile({
+      setSavedProfile((prev) => ({
+        excludeKeywords: prev?.excludeKeywords ?? null,
         profileTitles: JSON.stringify(nextTitles),
         profileSkills: JSON.stringify(nextSkills),
-      });
+      }));
       toast.success("Item removed");
     } catch {
       toast.error("Failed to remove item");
@@ -229,7 +231,7 @@ export default function ProfilePage(): React.ReactElement {
         body: JSON.stringify({ profileSkills: null, profileTitles: null }),
       });
       if (!res.ok) throw new Error("Clear failed");
-      setSavedProfile({ profileSkills: null, profileTitles: null });
+      setSavedProfile({ profileSkills: null, profileTitles: null, excludeKeywords: null });
       setSuggestions(null);
       setFileName(null);
       toast.success("Profile cleared — using default curriculum");
