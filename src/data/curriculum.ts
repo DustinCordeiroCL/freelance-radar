@@ -1,73 +1,36 @@
-export const CURRICULUM = `
-# Dustin Leandro — Senior Fullstack Developer
-
-## Location
-San Miguel, Santiago, Chile
-
-## Languages
-- Portuguese (native)
-- Spanish (professional)
-- English (advanced)
+const DEFAULT_CURRICULUM = `
+# Fullstack Developer
 
 ## Professional Summary
-Senior Fullstack Developer with 6+ years of experience across Logistics, Healthcare, and HCM (Human Capital Management) domains. Skilled in building robust web applications from frontend to backend, with solid DevOps and cloud infrastructure knowledge. Actively seeking freelance projects in Brazil and Chile, with openness to global opportunities.
-
-## Target Markets
-- Brazil (primary)
-- Chile (primary)
-- Global via Freelancer.com (secondary)
+Senior Fullstack Developer with 6+ years of experience. Skilled in building web applications from frontend to backend, with solid DevOps and cloud infrastructure knowledge.
 
 ## Technical Skills
 
 ### Frontend
-- Angular (main framework, 6+ years)
-- ReactJS (hooks, context, functional components)
-- TypeScript (strict mode, interfaces, generics)
-- HTML5, CSS3, SASS/SCSS
+- Angular, ReactJS, Next.js (App Router)
+- TypeScript (strict mode)
 - Tailwind CSS
-- Next.js (App Router)
 
 ### Backend
-- Java with Spring Boot (REST APIs, microservices)
-- Kotlin
-- PHP with Laravel
+- Java with Spring Boot
 - Node.js (Express, Fastify)
-- RESTful API design
-- GraphQL (basic)
+- PHP with Laravel
+- RESTful APIs, GraphQL (basic)
 
 ### Databases
-- PostgreSQL (primary relational DB)
-- MySQL
-- SQLite
-- Basic MongoDB
+- PostgreSQL, MySQL, SQLite, MongoDB
 
 ### DevOps & Cloud
-- Docker (containerization, Compose)
-- Google Cloud Platform (GCP)
-- Microsoft Azure (Azure Pipelines, App Service)
-- CI/CD: Jenkins, Azure Pipelines
-- Git, GitHub, GitLab
-
-### Tools & Practices
-- Agile / Scrum
-- TDD basics
-- Code review
-- Technical documentation
+- Docker, GCP, Azure, CI/CD
 
 ## Domain Experience
-- **Logistics:** supply chain systems, route optimization, delivery tracking platforms
-- **Healthcare (Saúde):** patient management, clinical workflows, TISS/TUSS integrations (Brazilian health standards)
-- **HCM (Human Capital Management):** HR portals, payroll integrations, employee lifecycle management
-
-## Education
-- Bachelor's degree in Computer Science / Information Systems (or equivalent)
+- Logistics, Healthcare, HCM (Human Capital Management)
 
 ## Ideal Projects
 - Web application development (frontend, backend, or fullstack)
 - API integrations and third-party service connections
-- System migration and modernization
-- Administrative dashboards and management panels
-- E-commerce platforms
-- SaaS products (MVP to production)
-- Projects using Angular, React, Node.js, Java Spring Boot, or PHP Laravel
+- Administrative dashboards and SaaS products
 `;
+
+// Set DEVELOPER_PROFILE env var to override with your personal curriculum
+export const CURRICULUM: string = process.env.DEVELOPER_PROFILE ?? DEFAULT_CURRICULUM;

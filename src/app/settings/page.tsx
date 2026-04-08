@@ -30,8 +30,8 @@ interface Settings {
   activeGuru: boolean;
   followUpDays: number;
   scoreAlertThreshold: number;
-  anthropicKey: string | null;
-  freelancerToken: string | null;
+  anthropicKeySet: boolean;
+  freelancerTokenSet: boolean;
   profileSkills: string | null;
   profileTitles: string | null;
 }
@@ -97,8 +97,9 @@ export default function SettingsPage(): React.ReactElement {
       .then((data) => {
         const s = data as Settings;
         setSettings(s);
-        setAnthropicKey(s.anthropicKey ?? "");
-        setFreelancerToken(s.freelancerToken ?? "");
+        // Keys are never returned from the API — inputs start empty so user can re-enter if needed
+        setAnthropicKey("");
+        setFreelancerToken("");
       })
       .catch(() => toast.error("Failed to load settings"));
   }, []);
@@ -111,32 +112,35 @@ export default function SettingsPage(): React.ReactElement {
     if (!settings) return;
     setIsSaving(true);
     try {
+      const payload: Record<string, unknown> = {
+        intervalRSS: settings.intervalRSS,
+        intervalAPI: settings.intervalAPI,
+        intervalScraping: settings.intervalScraping,
+        activeWorkana: settings.activeWorkana,
+        activeFreelancer: settings.activeFreelancer,
+        active99Freelas: settings.active99Freelas,
+        activeIndeed: settings.activeIndeed,
+        activeSoyFreelancer: settings.activeSoyFreelancer,
+        activeUpwork: settings.activeUpwork,
+        activeRemoteOK: settings.activeRemoteOK,
+        activeWeWorkRemotely: settings.activeWeWorkRemotely,
+        activeRemotive: settings.activeRemotive,
+        activeTrampos: settings.activeTrampos,
+        activeTorre: settings.activeTorre,
+        activeGetOnBoard: settings.activeGetOnBoard,
+        activeProgramathor: settings.activeProgramathor,
+        activeGuru: settings.activeGuru,
+        followUpDays: settings.followUpDays,
+        scoreAlertThreshold: settings.scoreAlertThreshold,
+      };
+      // Only send keys if the user typed something (blank = keep existing)
+      if (anthropicKey) payload.anthropicKey = anthropicKey;
+      if (freelancerToken) payload.freelancerToken = freelancerToken;
+
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          intervalRSS: settings.intervalRSS,
-          intervalAPI: settings.intervalAPI,
-          intervalScraping: settings.intervalScraping,
-          activeWorkana: settings.activeWorkana,
-          activeFreelancer: settings.activeFreelancer,
-          active99Freelas: settings.active99Freelas,
-          activeIndeed: settings.activeIndeed,
-          activeSoyFreelancer: settings.activeSoyFreelancer,
-          activeUpwork: settings.activeUpwork,
-          activeRemoteOK: settings.activeRemoteOK,
-          activeWeWorkRemotely: settings.activeWeWorkRemotely,
-          activeRemotive: settings.activeRemotive,
-          activeTrampos: settings.activeTrampos,
-          activeTorre: settings.activeTorre,
-          activeGetOnBoard: settings.activeGetOnBoard,
-          activeProgramathor: settings.activeProgramathor,
-          activeGuru: settings.activeGuru,
-          followUpDays: settings.followUpDays,
-          scoreAlertThreshold: settings.scoreAlertThreshold,
-          anthropicKey: anthropicKey || null,
-          freelancerToken: freelancerToken || null,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Save failed");
       toast.success("Settings saved");
@@ -190,10 +194,13 @@ export default function SettingsPage(): React.ReactElement {
               <ApiKeyInput
                 value={anthropicKey}
                 onChange={setAnthropicKey}
-                placeholder="sk-ant-..."
+                placeholder={settings.anthropicKeySet ? "Leave blank to keep current key" : "sk-ant-..."}
               />
-              {!anthropicKey && (
+              {!settings.anthropicKeySet && !anthropicKey && (
                 <p className="text-xs text-amber-500">Key not configured — AI scoring and proposals are disabled</p>
+              )}
+              {settings.anthropicKeySet && !anthropicKey && (
+                <p className="text-xs text-emerald-500">Key configured — leave blank to keep it unchanged</p>
               )}
             </div>
 
@@ -214,10 +221,13 @@ export default function SettingsPage(): React.ReactElement {
               <ApiKeyInput
                 value={freelancerToken}
                 onChange={setFreelancerToken}
-                placeholder="Paste your token here"
+                placeholder={settings.freelancerTokenSet ? "Leave blank to keep current token" : "Paste your token here"}
               />
-              {!freelancerToken && (
+              {!settings.freelancerTokenSet && !freelancerToken && (
                 <p className="text-xs text-muted-foreground">Optional — Freelancer.com connector will be skipped if not set</p>
+              )}
+              {settings.freelancerTokenSet && !freelancerToken && (
+                <p className="text-xs text-emerald-500">Token configured — leave blank to keep it unchanged</p>
               )}
             </div>
 

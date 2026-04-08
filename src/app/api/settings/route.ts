@@ -13,11 +13,48 @@ async function getOrCreateSettings() {
 export async function GET(): Promise<NextResponse> {
   try {
     const settings = await getOrCreateSettings();
-    return NextResponse.json(settings);
+    const { anthropicKey, freelancerToken, ...safeSettings } = settings;
+    return NextResponse.json({
+      ...safeSettings,
+      anthropicKeySet: !!anthropicKey,
+      freelancerTokenSet: !!freelancerToken,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+const BOOLEAN_FIELDS = new Set([
+  "activeWorkana", "activeFreelancer", "active99Freelas", "activeIndeed",
+  "activeSoyFreelancer", "activeUpwork", "activeRemoteOK", "activeWeWorkRemotely",
+  "activeRemotive", "activeTrampos", "activeTorre", "activeGetOnBoard",
+  "activeProgramathor", "activeGuru",
+]);
+
+const NUMBER_FIELDS = new Set([
+  "intervalRSS", "intervalAPI", "intervalScraping", "followUpDays", "scoreAlertThreshold",
+]);
+
+const STRING_FIELDS = new Set([
+  "anthropicKey", "freelancerToken", "profileSkills", "profileTitles", "excludeKeywords",
+]);
+
+function validateField(key: string, value: unknown): string | null {
+  if (BOOLEAN_FIELDS.has(key)) {
+    if (typeof value !== "boolean") return `${key} must be a boolean`;
+  } else if (NUMBER_FIELDS.has(key)) {
+    if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return `${key} must be a non-negative number`;
+    if (key === "scoreAlertThreshold" && (value < 0 || value > 100)) return "scoreAlertThreshold must be between 0 and 100";
+    if (["intervalRSS", "intervalAPI", "intervalScraping"].includes(key) && value < 1) return `${key} must be at least 1`;
+  } else if (STRING_FIELDS.has(key)) {
+    if (value !== null && typeof value !== "string") return `${key} must be a string or null`;
+    if (typeof value === "string" && value.length > 2000) return `${key} is too long`;
+    if (key === "anthropicKey" && typeof value === "string" && value.length > 0 && !value.startsWith("sk-ant-")) {
+      return "anthropicKey must start with sk-ant-";
+    }
+  }
+  return null;
 }
 
 export async function PATCH(request: NextRequest): Promise<NextResponse> {
@@ -28,40 +65,28 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const allowed = [
-    "intervalRSS",
-    "intervalAPI",
-    "intervalScraping",
-    "activeWorkana",
-    "activeFreelancer",
-    "active99Freelas",
-    "activeIndeed",
-    "followUpDays",
-    "anthropicKey",
-    "freelancerToken",
-    "profileSkills",
-    "profileTitles",
-    "excludeKeywords",
-    "activeSoyFreelancer",
-    "activeUpwork",
-    "activeRemoteOK",
-    "activeWeWorkRemotely",
-    "activeRemotive",
-    "activeTrampos",
-    "activeTorre",
-    "activeGetOnBoard",
-    "activeProgramathor",
-    "activeGuru",
-    "scoreAlertThreshold",
-  ] as const;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Body must be a JSON object" }, { status: 400 });
+  }
 
-  type AllowedKey = (typeof allowed)[number];
+  const allowed = [...BOOLEAN_FIELDS, ...NUMBER_FIELDS, ...STRING_FIELDS];
+  const data: Record<string, unknown> = {};
+  const errors: string[] = [];
 
-  const data: Partial<Record<AllowedKey, unknown>> = {};
   for (const key of allowed) {
-    if (body !== null && typeof body === "object" && key in (body as object)) {
-      data[key] = (body as Record<string, unknown>)[key];
+    if (key in (body as object)) {
+      const value = (body as Record<string, unknown>)[key];
+      const error = validateField(key, value);
+      if (error) {
+        errors.push(error);
+      } else {
+        data[key] = value;
+      }
     }
+  }
+
+  if (errors.length > 0) {
+    return NextResponse.json({ error: errors.join("; ") }, { status: 400 });
   }
 
   if (Object.keys(data).length === 0) {
@@ -76,12 +101,16 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
       data: data as Parameters<typeof prisma.settings.update>[0]["data"],
     });
 
-    // Invalidate profile cache if skills or titles changed
     if ("profileSkills" in data || "profileTitles" in data || "excludeKeywords" in data) {
       invalidateProfileCache();
     }
 
-    return NextResponse.json(updated);
+    const { anthropicKey, freelancerToken, ...safeUpdated } = updated;
+    return NextResponse.json({
+      ...safeUpdated,
+      anthropicKeySet: !!anthropicKey,
+      freelancerTokenSet: !!freelancerToken,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

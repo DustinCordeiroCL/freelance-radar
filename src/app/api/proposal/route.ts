@@ -3,8 +3,15 @@ import { prisma } from "@/lib/db";
 import { getAnthropicClient } from "@/lib/anthropic";
 import { resolveAnthropicKey } from "@/lib/keys";
 import { getProfileContext } from "@/lib/profile";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // 10 proposals per minute per IP
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? "local";
+  if (!checkRateLimit(`proposal:${ip}`, 10, 60_000)) {
+    return NextResponse.json({ error: "Too many requests — try again in a minute" }, { status: 429 });
+  }
+
   const apiKey = await resolveAnthropicKey();
   if (!apiKey) {
     return NextResponse.json({ error: "Anthropic API key is not configured. Add it in Settings → API Keys." }, { status: 503 });
@@ -62,7 +69,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ proposalText });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("[api/proposal] AI generation failed:", message);
+    if (process.env.NODE_ENV !== "production") console.error("[api/proposal] AI generation failed:", message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
