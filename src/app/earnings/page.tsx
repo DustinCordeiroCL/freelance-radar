@@ -48,7 +48,7 @@ export default function EarningsPage(): React.ReactElement {
     void fetch("/api/earnings")
       .then((r) => r.json())
       .then((d) => setData(d as EarningsData))
-      .catch(() => toast.error("Failed to load earnings data"))
+      .catch(() => toast.error("Error al cargar los datos de ganancias"))
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -60,35 +60,35 @@ export default function EarningsPage(): React.ReactElement {
   return (
     <div className="flex flex-col h-full">
       <header className="flex items-center px-6 py-4 border-b border-border bg-card">
-        <h1 className="text-lg font-semibold">Earnings</h1>
+        <h1 className="text-lg font-semibold">Ganancias</h1>
       </header>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
         {isLoading ? (
           <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-            <Loader2 className="size-4 animate-spin mr-2" /> Loading earnings...
+            <Loader2 className="size-4 animate-spin mr-2" /> Cargando ganancias...
           </div>
         ) : !data ? null : (
           <>
             {/* Summary cards */}
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
               <StatCard
-                label="Total earned"
+                label="Total ganado"
                 value={formatCurrency(data.summary.totalEarned)}
-                sub={`from ${data.summary.completedCount} completed project${data.summary.completedCount !== 1 ? "s" : ""}`}
+                sub={`de ${data.summary.completedCount} proyecto${data.summary.completedCount !== 1 ? "s" : ""} completado${data.summary.completedCount !== 1 ? "s" : ""}`}
               />
               <StatCard
-                label="Avg match score"
+                label="Score promedio"
                 value={data.summary.avgScore !== null ? `${data.summary.avgScore}` : "—"}
-                sub="across all scored projects"
+                sub="en todos los proyectos con score"
               />
               <StatCard
-                label="Conversion rate"
+                label="Tasa de conversión"
                 value={data.summary.conversionRate !== null ? `${data.summary.conversionRate}%` : "—"}
-                sub="proposals → completed"
+                sub="propuestas → completados"
               />
               <StatCard
-                label="Platforms used"
+                label="Plataformas usadas"
                 value={String(data.byPlatform.length)}
                 sub={data.byPlatform.map((p) => p.platform).join(", ") || "—"}
               />
@@ -97,7 +97,7 @@ export default function EarningsPage(): React.ReactElement {
             {/* Monthly chart */}
             {data.monthly.length > 0 ? (
               <section>
-                <h2 className="text-sm font-semibold mb-4">Monthly earnings by platform</h2>
+                <h2 className="text-sm font-semibold mb-4">Ganancias mensuales por plataforma</h2>
                 <div className="rounded-lg border border-border bg-card p-4">
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={data.monthly} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
@@ -124,15 +124,15 @@ export default function EarningsPage(): React.ReactElement {
               </section>
             ) : (
               <div className="rounded-lg border border-border bg-card p-8 flex flex-col items-center gap-2 text-muted-foreground">
-                <p className="text-sm font-medium">No earnings data yet</p>
-                <p className="text-xs">Mark projects as <strong>Concluída</strong> and set their value to see charts here</p>
+                <p className="text-sm font-medium">Aún no hay datos de ganancias</p>
+                <p className="text-xs">Marca proyectos como <strong>Concluido</strong> y define su valor para ver gráficos aquí</p>
               </div>
             )}
 
             {/* By platform breakdown */}
             {data.byPlatform.length > 0 && (
               <section>
-                <h2 className="text-sm font-semibold mb-4">By platform</h2>
+                <h2 className="text-sm font-semibold mb-4">Por plataforma</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                   {data.byPlatform.map((p) => (
                     <div key={p.platform} className="rounded-lg border border-border bg-card p-3 flex flex-col gap-1">
@@ -154,15 +154,15 @@ export default function EarningsPage(): React.ReactElement {
             {/* Completed projects list */}
             {data.projects.length > 0 && (
               <section>
-                <h2 className="text-sm font-semibold mb-4">Completed projects</h2>
+                <h2 className="text-sm font-semibold mb-4">Proyectos completados</h2>
                 <div className="rounded-lg border border-border overflow-hidden">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border bg-muted/50">
-                        <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Project</th>
-                        <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Platform</th>
-                        <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Value</th>
-                        <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Completed</th>
+                        <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Proyecto</th>
+                        <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Plataforma</th>
+                        <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Valor</th>
+                        <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Completado</th>
                         <th className="px-4 py-2.5" />
                       </tr>
                     </thead>

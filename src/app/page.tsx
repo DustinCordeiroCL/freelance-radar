@@ -35,7 +35,7 @@ export default function DashboardPage(): React.ReactElement {
           <h1 className="text-lg font-semibold">Dashboard</h1>
           {lastCollectedAt && (
             <p className="text-xs text-muted-foreground">
-              Last collected {lastCollectedAt.toLocaleTimeString()}
+              Última recopilación {lastCollectedAt.toLocaleTimeString()}
             </p>
           )}
         </div>
@@ -46,7 +46,7 @@ export default function DashboardPage(): React.ReactElement {
           className="gap-2"
         >
           <RefreshCw className={`size-4 ${isCollecting ? "animate-spin" : ""}`} />
-          {isCollecting ? "Collecting..." : "Collect now"}
+          {isCollecting ? "Recopilando..." : "Recopilar ahora"}
         </Button>
       </header>
 
@@ -62,12 +62,12 @@ export default function DashboardPage(): React.ReactElement {
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         {isLoading || isCollecting ? (
           <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-            {isCollecting ? "Collecting new projects..." : "Loading projects..."}
+            {isCollecting ? "Recopilando nuevas oportunidades..." : "Cargando proyectos..."}
           </div>
         ) : projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 gap-2 text-muted-foreground">
-            <p className="text-sm font-medium">No projects found</p>
-            <p className="text-xs">Try adjusting filters or collect new opportunities</p>
+            <p className="text-sm font-medium">No se encontraron proyectos</p>
+            <p className="text-xs">Ajusta los filtros o recopila nuevas oportunidades</p>
           </div>
         ) : viewMode === "list" ? (
           <div className="flex flex-col">

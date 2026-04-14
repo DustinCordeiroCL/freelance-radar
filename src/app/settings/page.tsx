@@ -42,15 +42,15 @@ const CONNECTOR_INFO = [
   { key: "activeFreelancer", label: "Freelancer.com", type: "API" },
   { key: "activeIndeed", label: "Indeed Chile", type: "Scraping" },
   { key: "activeSoyFreelancer", label: "SoyFreelancer", type: "Scraping (CL)" },
-  { key: "activeUpwork", label: "Upwork", type: "RSS feed" },
-  { key: "activeRemoteOK", label: "RemoteOK", type: "Public JSON API" },
-  { key: "activeWeWorkRemotely", label: "We Work Remotely", type: "RSS feed" },
-  { key: "activeRemotive", label: "Remotive", type: "RSS feed" },
-  { key: "activeTrampos", label: "Trampos.co", type: "JSON API (BR)" },
-  { key: "activeTorre", label: "Torre.co", type: "JSON API (Latam)" },
+  { key: "activeUpwork", label: "Upwork", type: "Feed RSS" },
+  { key: "activeRemoteOK", label: "RemoteOK", type: "API JSON pública" },
+  { key: "activeWeWorkRemotely", label: "We Work Remotely", type: "Feed RSS" },
+  { key: "activeRemotive", label: "Remotive", type: "Feed RSS" },
+  { key: "activeTrampos", label: "Trampos.co", type: "API JSON (BR)" },
+  { key: "activeTorre", label: "Torre.co", type: "API JSON (Latam)" },
   { key: "activeGetOnBoard", label: "GetOnBoard", type: "Scraping (CL/Latam)" },
   { key: "activeProgramathor", label: "Programathor", type: "Scraping (BR)" },
-  { key: "activeGuru", label: "Guru.com", type: "RSS feed" },
+  { key: "activeGuru", label: "Guru.com", type: "Feed RSS" },
 ] as const;
 
 function ApiKeyInput({
@@ -101,7 +101,7 @@ export default function SettingsPage(): React.ReactElement {
         setAnthropicKey("");
         setFreelancerToken("");
       })
-      .catch(() => toast.error("Failed to load settings"));
+      .catch(() => toast.error("Error al cargar la configuración"));
   }, []);
 
   function update<K extends keyof Settings>(key: K, value: Settings[K]): void {
@@ -143,9 +143,9 @@ export default function SettingsPage(): React.ReactElement {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Save failed");
-      toast.success("Settings saved");
+      toast.success("Configuración guardada");
     } catch {
-      toast.error("Failed to save settings");
+      toast.error("Error al guardar la configuración");
     } finally {
       setIsSaving(false);
     }
@@ -154,7 +154,7 @@ export default function SettingsPage(): React.ReactElement {
   if (!settings) {
     return (
       <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-        <Loader2 className="size-4 animate-spin mr-2" /> Loading settings...
+        <Loader2 className="size-4 animate-spin mr-2" /> Cargando configuración...
       </div>
     );
   }
@@ -162,10 +162,10 @@ export default function SettingsPage(): React.ReactElement {
   return (
     <div className="flex flex-col h-full">
       <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
-        <h1 className="text-lg font-semibold">Settings</h1>
+        <h1 className="text-lg font-semibold">Configuración</h1>
         <Button size="sm" onClick={() => void save()} disabled={isSaving} className="gap-2">
           {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-          Save
+          Guardar
         </Button>
       </header>
 
@@ -174,33 +174,33 @@ export default function SettingsPage(): React.ReactElement {
 
         {/* API Keys */}
         <section>
-          <h2 className="text-sm font-semibold mb-4">API Keys</h2>
+          <h2 className="text-sm font-semibold mb-4">Claves de API</h2>
           <div className="flex flex-col gap-5">
 
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-1.5">
                 <Label className="text-sm">Anthropic API Key</Label>
                 <InfoPopover>
-                  <p className="font-medium text-foreground mb-1">What is this?</p>
-                  <p className="mb-2">Required for AI match scoring and proposal generation.</p>
-                  <p className="font-medium text-foreground mb-1">How to get it</p>
+                  <p className="font-medium text-foreground mb-1">¿Qué es esto?</p>
+                  <p className="mb-2">Requerida para el scoring de compatibilidad y generación de propuestas con IA.</p>
+                  <p className="font-medium text-foreground mb-1">Cómo obtenerla</p>
                   <ol className="list-decimal list-inside space-y-1">
-                    <li>Go to <span className="font-mono text-xs bg-muted px-1 rounded">console.anthropic.com</span></li>
-                    <li>Navigate to <strong>API Keys</strong></li>
-                    <li>Click <strong>Create key</strong> and copy it</li>
+                    <li>Ve a <span className="font-mono text-xs bg-muted px-1 rounded">console.anthropic.com</span></li>
+                    <li>Navega a <strong>API Keys</strong></li>
+                    <li>Haz clic en <strong>Create key</strong> y cópiala</li>
                   </ol>
                 </InfoPopover>
               </div>
               <ApiKeyInput
                 value={anthropicKey}
                 onChange={setAnthropicKey}
-                placeholder={settings.anthropicKeySet ? "Leave blank to keep current key" : "sk-ant-..."}
+                placeholder={settings.anthropicKeySet ? "Dejar vacío para mantener la clave actual" : "sk-ant-..."}
               />
               {!settings.anthropicKeySet && !anthropicKey && (
-                <p className="text-xs text-amber-500">Key not configured — AI scoring and proposals are disabled</p>
+                <p className="text-xs text-amber-500">Clave no configurada — el scoring y las propuestas con IA están desactivados</p>
               )}
               {settings.anthropicKeySet && !anthropicKey && (
-                <p className="text-xs text-emerald-500">Key configured — leave blank to keep it unchanged</p>
+                <p className="text-xs text-emerald-500">Clave configurada — dejar vacío para mantenerla</p>
               )}
             </div>
 
@@ -208,26 +208,26 @@ export default function SettingsPage(): React.ReactElement {
               <div className="flex items-center gap-1.5">
                 <Label className="text-sm">Freelancer.com API Token</Label>
                 <InfoPopover>
-                  <p className="font-medium text-foreground mb-1">What is this?</p>
-                  <p className="mb-2">Required for the Freelancer.com connector. Without it, that platform is skipped.</p>
-                  <p className="font-medium text-foreground mb-1">How to get it</p>
+                  <p className="font-medium text-foreground mb-1">¿Qué es esto?</p>
+                  <p className="mb-2">Requerido para el conector de Freelancer.com. Sin él, esa plataforma se omite.</p>
+                  <p className="font-medium text-foreground mb-1">Cómo obtenerlo</p>
                   <ol className="list-decimal list-inside space-y-1">
-                    <li>Go to <span className="font-mono text-xs bg-muted px-1 rounded">freelancer.com/api</span></li>
-                    <li>Register an application</li>
-                    <li>Copy the <strong>OAuth token</strong></li>
+                    <li>Ve a <span className="font-mono text-xs bg-muted px-1 rounded">freelancer.com/api</span></li>
+                    <li>Registra una aplicación</li>
+                    <li>Copia el <strong>OAuth token</strong></li>
                   </ol>
                 </InfoPopover>
               </div>
               <ApiKeyInput
                 value={freelancerToken}
                 onChange={setFreelancerToken}
-                placeholder={settings.freelancerTokenSet ? "Leave blank to keep current token" : "Paste your token here"}
+                placeholder={settings.freelancerTokenSet ? "Dejar vacío para mantener el token actual" : "Pega tu token aquí"}
               />
               {!settings.freelancerTokenSet && !freelancerToken && (
-                <p className="text-xs text-muted-foreground">Optional — Freelancer.com connector will be skipped if not set</p>
+                <p className="text-xs text-muted-foreground">Opcional — el conector de Freelancer.com se omitirá si no está configurado</p>
               )}
               {settings.freelancerTokenSet && !freelancerToken && (
-                <p className="text-xs text-emerald-500">Token configured — leave blank to keep it unchanged</p>
+                <p className="text-xs text-emerald-500">Token configurado — dejar vacío para mantenerlo</p>
               )}
             </div>
 
@@ -238,11 +238,11 @@ export default function SettingsPage(): React.ReactElement {
 
         {/* Collection intervals */}
         <section>
-          <h2 className="text-sm font-semibold mb-4">Collection intervals</h2>
+          <h2 className="text-sm font-semibold mb-4">Intervalos de recopilación</h2>
           <div className="grid grid-cols-1 gap-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <Label className="text-sm">RSS / Scraping interval</Label>
+                <Label className="text-sm">Intervalo RSS / Scraping</Label>
                 <p className="text-xs text-muted-foreground">Workana, 99Freelas, Indeed</p>
               </div>
               <div className="flex items-center gap-2">
@@ -258,7 +258,7 @@ export default function SettingsPage(): React.ReactElement {
             </div>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <Label className="text-sm">API interval</Label>
+                <Label className="text-sm">Intervalo API</Label>
                 <p className="text-xs text-muted-foreground">Freelancer.com</p>
               </div>
               <div className="flex items-center gap-2">
@@ -274,8 +274,8 @@ export default function SettingsPage(): React.ReactElement {
             </div>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <Label className="text-sm">Scraping interval (slow)</Label>
-                <p className="text-xs text-muted-foreground">Indeed Chile (anti-bot protection)</p>
+                <Label className="text-sm">Intervalo Scraping (lento)</Label>
+                <p className="text-xs text-muted-foreground">Indeed Chile (protección anti-bot)</p>
               </div>
               <div className="flex items-center gap-2">
                 <Input
@@ -295,7 +295,7 @@ export default function SettingsPage(): React.ReactElement {
 
         {/* Active connectors */}
         <section>
-          <h2 className="text-sm font-semibold mb-4">Active connectors</h2>
+          <h2 className="text-sm font-semibold mb-4">Conectores activos</h2>
           <div className="flex flex-col gap-3">
             {CONNECTOR_INFO.map(({ key, label, type }) => (
               <div key={key} className="flex items-center justify-between">
@@ -324,12 +324,12 @@ export default function SettingsPage(): React.ReactElement {
 
         {/* Follow-up */}
         <section>
-          <h2 className="text-sm font-semibold mb-4">Follow-up notifications</h2>
+          <h2 className="text-sm font-semibold mb-4">Notificaciones de seguimiento</h2>
           <div className="flex items-center justify-between gap-4">
             <div>
-              <Label className="text-sm">Days without status update</Label>
+              <Label className="text-sm">Días sin actualización de estado</Label>
               <p className="text-xs text-muted-foreground">
-                Sends a desktop notification when a project in negotiation or development has no update
+                Envía una notificación cuando un proyecto en negociación o desarrollo no tiene actualizaciones
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -340,15 +340,15 @@ export default function SettingsPage(): React.ReactElement {
                 onChange={(e) => update("followUpDays", parseInt(e.target.value, 10) || 3)}
                 className="w-16 h-8 text-sm"
               />
-              <span className="text-xs text-muted-foreground">days</span>
+              <span className="text-xs text-muted-foreground">días</span>
             </div>
           </div>
 
           <div className="flex items-center justify-between gap-4">
             <div>
-              <Label className="text-sm">Score alert threshold</Label>
+              <Label className="text-sm">Umbral de alerta por score</Label>
               <p className="text-xs text-muted-foreground">
-                Sends a desktop notification when a new project scores at or above this value
+                Envía una notificación cuando un proyecto nuevo obtiene este score o más
               </p>
             </div>
             <div className="flex items-center gap-2">

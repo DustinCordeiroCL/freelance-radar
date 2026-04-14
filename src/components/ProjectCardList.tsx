@@ -16,10 +16,10 @@ interface ProjectCardListProps {
 }
 
 const STATUS_OPTIONS: Array<{ value: ProposalStatus | ""; label: string }> = [
-  { value: "", label: "No status" },
-  { value: "em_negociacao", label: "Em negociação" },
-  { value: "em_desenvolvimento", label: "Em desenvolvimento" },
-  { value: "concluida", label: "Concluída" },
+  { value: "", label: "Sin estado" },
+  { value: "em_negociacao", label: "En negociación" },
+  { value: "em_desenvolvimento", label: "En desarrollo" },
+  { value: "concluida", label: "Concluido" },
 ];
 
 export function ProjectCardList({ project, onUpdate, onViewDetails, index }: ProjectCardListProps): React.ReactElement {
@@ -80,7 +80,7 @@ export function ProjectCardList({ project, onUpdate, onViewDetails, index }: Pro
       <div className="flex items-center gap-0.5 shrink-0">
         <button
           onClick={() => onViewDetails(project)}
-          title="View project details"
+          title="Ver detalles del proyecto"
           className={`p-1.5 rounded hover:bg-accent transition-colors relative ${project.proposalText ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
         >
           <FileText className="size-3.5" />
@@ -92,7 +92,7 @@ export function ProjectCardList({ project, onUpdate, onViewDetails, index }: Pro
           href={project.url}
           target="_blank"
           rel="noopener noreferrer"
-          title="Open on platform"
+          title="Abrir en la plataforma"
           className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
         >
           <ExternalLink className="size-3.5" />
@@ -100,7 +100,7 @@ export function ProjectCardList({ project, onUpdate, onViewDetails, index }: Pro
         <button
           onClick={toggleFavorite}
           disabled={isUpdating}
-          title={project.isFavorite ? "Remove from favorites" : "Add to favorites"}
+          title={project.isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
           className={`p-1.5 rounded hover:bg-accent transition-colors ${project.isFavorite ? "text-yellow-500" : "text-muted-foreground hover:text-foreground"}`}
         >
           <Star className={`size-3.5 ${project.isFavorite ? "fill-yellow-500" : ""}`} />
@@ -108,7 +108,7 @@ export function ProjectCardList({ project, onUpdate, onViewDetails, index }: Pro
         <button
           onClick={toggleDiscard}
           disabled={isUpdating}
-          title={project.isDiscarded ? "Restore project" : "Discard project"}
+          title={project.isDiscarded ? "Restaurar proyecto" : "Descartar proyecto"}
           className={`p-1.5 rounded hover:bg-accent transition-colors ${project.isDiscarded ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
         >
           <Trash2 className="size-3.5" />

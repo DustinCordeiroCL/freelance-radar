@@ -11,9 +11,9 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  em_negociacao: "Em negociação",
-  em_desenvolvimento: "Em desenvolvimento",
-  concluida: "Concluída",
+  em_negociacao: "En negociación",
+  em_desenvolvimento: "En desarrollo",
+  concluida: "Concluido",
 };
 
 export function StatusBadge({ status }: StatusBadgeProps): React.ReactElement | null {

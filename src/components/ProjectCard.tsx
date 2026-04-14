@@ -16,10 +16,10 @@ interface ProjectCardProps {
 }
 
 const STATUS_OPTIONS: Array<{ value: ProposalStatus | ""; label: string }> = [
-  { value: "", label: "No status" },
-  { value: "em_negociacao", label: "Em negociação" },
-  { value: "em_desenvolvimento", label: "Em desenvolvimento" },
-  { value: "concluida", label: "Concluída" },
+  { value: "", label: "Sin estado" },
+  { value: "em_negociacao", label: "En negociación" },
+  { value: "em_desenvolvimento", label: "En desarrollo" },
+  { value: "concluida", label: "Concluido" },
 ];
 
 export function ProjectCard({ project, onUpdate, onGenerateProposal }: ProjectCardProps): React.ReactElement {
@@ -85,7 +85,7 @@ export function ProjectCard({ project, onUpdate, onGenerateProposal }: ProjectCa
             value={valueInput}
             onChange={(e) => setValueInput(e.target.value)}
             onBlur={() => void handleValueSave(valueInput, project.proposalStatus ?? null)}
-            placeholder="Project value"
+            placeholder="Valor del proyecto"
             className="flex-1 text-xs bg-background border border-border rounded px-2 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
           />
           <span className="text-xs text-muted-foreground">USD</span>
@@ -108,7 +108,7 @@ export function ProjectCard({ project, onUpdate, onGenerateProposal }: ProjectCa
         <div className="flex items-center gap-1">
           <button
             onClick={() => onGenerateProposal(project)}
-            title="View project details"
+            title="Ver detalles del proyecto"
             className={`p-1.5 rounded hover:bg-accent transition-colors relative ${project.proposalText ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
           >
             <FileText className="size-4" />
@@ -120,7 +120,7 @@ export function ProjectCard({ project, onUpdate, onGenerateProposal }: ProjectCa
             href={project.url}
             target="_blank"
             rel="noopener noreferrer"
-            title="Open on platform"
+            title="Abrir en la plataforma"
             className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
           >
             <ExternalLink className="size-4" />
@@ -128,7 +128,7 @@ export function ProjectCard({ project, onUpdate, onGenerateProposal }: ProjectCa
           <button
             onClick={toggleFavorite}
             disabled={isUpdating}
-            title={project.isFavorite ? "Remove from favorites" : "Add to favorites"}
+            title={project.isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
             className={`p-1.5 rounded hover:bg-accent transition-colors ${project.isFavorite ? "text-yellow-500" : "text-muted-foreground hover:text-foreground"}`}
           >
             <Star className={`size-4 ${project.isFavorite ? "fill-yellow-500" : ""}`} />
@@ -136,7 +136,7 @@ export function ProjectCard({ project, onUpdate, onGenerateProposal }: ProjectCa
           <button
             onClick={toggleDiscard}
             disabled={isUpdating}
-            title={project.isDiscarded ? "Restore project" : "Discard project"}
+            title={project.isDiscarded ? "Restaurar proyecto" : "Descartar proyecto"}
             className={`p-1.5 rounded hover:bg-accent transition-colors ${project.isDiscarded ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
           >
             <Trash2 className="size-4" />

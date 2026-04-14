@@ -46,7 +46,7 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
       const data = (await res.json()) as { proposalText: string };
       setProposalText(data.proposalText);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to generate proposal");
+      toast.error(err instanceof Error ? err.message : "Error al generar la propuesta");
     } finally {
       setIsGenerating(false);
     }
@@ -63,9 +63,9 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
       });
       if (!res.ok) throw new Error("Save failed");
       onProposalSaved(project.id, proposalText);
-      toast.success("Proposal saved");
+      toast.success("Propuesta guardada");
     } catch {
-      toast.error("Failed to save proposal");
+      toast.error("Error al guardar la propuesta");
     } finally {
       setIsSaving(false);
     }
@@ -74,7 +74,7 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
   async function copyProposal(): Promise<void> {
     if (!proposalText.trim()) return;
     await navigator.clipboard.writeText(proposalText);
-    toast.success("Copied to clipboard");
+    toast.success("Copiado al portapapeles");
   }
 
   return (
@@ -98,7 +98,7 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
 
           {/* Left: project description */}
           <div className="flex flex-col w-1/2 min-h-0">
-            <p className="text-xs font-medium text-muted-foreground px-4 pt-3 pb-2 shrink-0">Project description</p>
+            <p className="text-xs font-medium text-muted-foreground px-4 pt-3 pb-2 shrink-0">Descripción del proyecto</p>
             <div className="flex-1 overflow-y-auto px-4 pb-4 text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap">
               {project?.description ?? "—"}
             </div>
@@ -106,12 +106,12 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
 
           {/* Right: proposal */}
           <div className="flex flex-col w-1/2 min-h-0">
-            <p className="text-xs font-medium text-muted-foreground px-4 pt-3 pb-2 shrink-0">Proposal</p>
+            <p className="text-xs font-medium text-muted-foreground px-4 pt-3 pb-2 shrink-0">Propuesta</p>
             <div className="flex-1 min-h-0 px-4 pb-4">
               {isGenerating ? (
                 <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground border border-dashed border-border rounded-md">
                   <Loader2 className="size-6 animate-spin" />
-                  <p className="text-sm">Generating proposal...</p>
+                  <p className="text-sm">Generando propuesta...</p>
                 </div>
               ) : proposalText ? (
                 <textarea
@@ -121,10 +121,10 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full gap-3 border border-dashed border-border rounded-md text-muted-foreground">
-                  <p className="text-xs">No proposal generated yet</p>
+                  <p className="text-xs">Aún no se ha generado una propuesta</p>
                   <Button onClick={() => void generateProposal()} size="sm" className="gap-2">
                     <Sparkles className="size-4" />
-                    Generate Proposal
+                    Generar propuesta
                   </Button>
                 </div>
               )}
@@ -141,22 +141,22 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             <ExternalLink className="size-3.5" />
-            Open on platform
+            Abrir en la plataforma
           </a>
 
           {proposalText && (
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => void generateProposal()} disabled={isGenerating || isSaving} className="gap-1.5">
                 <RefreshCw className={`size-3.5 ${isGenerating ? "animate-spin" : ""}`} />
-                Regenerate
+                Regenerar
               </Button>
               <Button variant="outline" size="sm" onClick={() => void copyProposal()} disabled={isGenerating} className="gap-1.5">
                 <Copy className="size-3.5" />
-                Copy
+                Copiar
               </Button>
               <Button size="sm" onClick={() => void saveProposal()} disabled={isGenerating || isSaving} className="gap-1.5">
                 {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
-                Save
+                Guardar
               </Button>
             </div>
           )}

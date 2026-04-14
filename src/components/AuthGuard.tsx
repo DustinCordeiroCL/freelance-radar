@@ -35,11 +35,11 @@ export function AuthGuard({ children }: { children: React.ReactNode }): React.Re
       if (res.ok) {
         setAuthState("authenticated");
       } else {
-        toast.error("Invalid secret — try again");
+        toast.error("Contraseña incorrecta — intenta de nuevo");
         setSecret("");
       }
     } catch {
-      toast.error("Login failed");
+      toast.error("Error al iniciar sesión");
     } finally {
       setIsSubmitting(false);
     }
@@ -62,11 +62,11 @@ export function AuthGuard({ children }: { children: React.ReactNode }): React.Re
               <Lock className="size-5 text-muted-foreground" />
             </div>
             <h1 className="text-lg font-semibold">FreelanceRadar</h1>
-            <p className="text-sm text-muted-foreground text-center">Enter the access secret to continue</p>
+            <p className="text-sm text-muted-foreground text-center">Ingresa la contraseña de acceso para continuar</p>
           </div>
           <form onSubmit={(e) => void handleLogin(e)} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="secret" className="text-sm">Access Secret</Label>
+              <Label htmlFor="secret" className="text-sm">Contraseña de acceso</Label>
               <Input
                 id="secret"
                 type="password"
@@ -78,7 +78,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }): React.Re
               />
             </div>
             <Button type="submit" disabled={isSubmitting || !secret} className="w-full">
-              {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : "Unlock"}
+              {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : "Acceder"}
             </Button>
           </form>
         </div>

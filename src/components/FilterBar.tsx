@@ -30,15 +30,15 @@ const PLATFORM_LABELS: Record<string, string> = {
   guru: "Guru.com",
 };
 const PROPOSAL_STATUSES = [
-  { value: "none", label: "Sem proposta" },
-  { value: "em_negociacao", label: "Em negociação" },
-  { value: "em_desenvolvimento", label: "Em desenvolvimento" },
-  { value: "concluida", label: "Concluída" },
+  { value: "none", label: "Sin propuesta" },
+  { value: "em_negociacao", label: "En negociación" },
+  { value: "em_desenvolvimento", label: "En desarrollo" },
+  { value: "concluida", label: "Concluido" },
 ];
 const SORT_OPTIONS = [
-  { value: "date", label: "Date" },
+  { value: "date", label: "Fecha" },
   { value: "score", label: "Score" },
-  { value: "value", label: "Value" },
+  { value: "value", label: "Valor" },
 ];
 
 function isActive(filters: Filters): boolean {
@@ -170,9 +170,9 @@ export function FilterBar({
     <div className="flex flex-wrap gap-3 items-end p-4 border-b border-border bg-card">
       {/* Search */}
       <div className="flex flex-col gap-1 min-w-48">
-        <Label className="text-xs text-muted-foreground">Search</Label>
+        <Label className="text-xs text-muted-foreground">Buscar</Label>
         <Input
-          placeholder="Title, tags, description..."
+          placeholder="Título, etiquetas, descripción..."
           value={filters.search}
           onChange={(e) => onChange({ ...filters, search: e.target.value })}
           className="h-8 text-sm"
@@ -181,9 +181,9 @@ export function FilterBar({
 
       {/* Platform multiselect dropdown */}
       <div className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground">Platform</Label>
+        <Label className="text-xs text-muted-foreground">Plataforma</Label>
         <MultiSelectDropdown
-          label="Platform"
+          label="Plataforma"
           options={platformOptions}
           selected={filters.platforms}
           onChange={(platforms) => onChange({ ...filters, platforms })}
@@ -192,9 +192,9 @@ export function FilterBar({
 
       {/* Proposal status multiselect dropdown */}
       <div className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground">Proposal status</Label>
+        <Label className="text-xs text-muted-foreground">Estado de propuesta</Label>
         <MultiSelectDropdown
-          label="Status"
+          label="Estado"
           options={PROPOSAL_STATUSES}
           selected={filters.proposalStatuses}
           onChange={(proposalStatuses) => onChange({ ...filters, proposalStatuses })}
@@ -207,19 +207,19 @@ export function FilterBar({
           onClick={() => onChange({ ...filters, hideUnscored: !filters.hideUnscored })}
           className={btnClass(filters.hideUnscored)}
         >
-          {filters.hideUnscored ? "Hide unscored ✓" : "Hide unscored"}
+          {filters.hideUnscored ? "Sin score ocultos ✓" : "Ocultar sin score"}
         </button>
         <button
           onClick={() => onChange({ ...filters, showDiscarded: !filters.showDiscarded })}
           className={btnClass(filters.showDiscarded, "destructive")}
         >
-          {filters.showDiscarded ? "Showing discarded ✓" : "Show discarded"}
+          {filters.showDiscarded ? "Mostrando descartados ✓" : "Ver descartados"}
         </button>
       </div>
 
       {/* Sort */}
       <div className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground">Sort by</Label>
+        <Label className="text-xs text-muted-foreground">Ordenar por</Label>
         <div className="flex gap-1">
           {SORT_OPTIONS.map(({ value, label }) => (
             <button
@@ -237,7 +237,7 @@ export function FilterBar({
       <div className="flex items-center gap-3 ml-auto">
         {total !== undefined && (
           <span className="text-xs text-muted-foreground">
-            {total} project{total !== 1 ? "s" : ""}
+            {total} proyecto{total !== 1 ? "s" : ""}
           </span>
         )}
 
@@ -246,14 +246,14 @@ export function FilterBar({
             <button
               onClick={() => onViewModeChange("grid")}
               className={`p-1.5 transition-colors ${viewMode === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"}`}
-              title="Grid view"
+              title="Vista cuadrícula"
             >
               <LayoutGrid className="size-3.5" />
             </button>
             <button
               onClick={() => onViewModeChange("list")}
               className={`p-1.5 transition-colors ${viewMode === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"}`}
-              title="List view"
+              title="Vista lista"
             >
               <List className="size-3.5" />
             </button>
@@ -265,7 +265,7 @@ export function FilterBar({
             onClick={() => onChange(DEFAULT_FILTERS)}
             className="h-8 px-2.5 rounded text-xs border border-border text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
           >
-            Reset filters
+            Limpiar filtros
           </button>
         )}
       </div>

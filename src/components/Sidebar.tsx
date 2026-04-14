@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/favorites", label: "Favorites", icon: Star },
-  { href: "/earnings", label: "Earnings", icon: TrendingUp },
-  { href: "/profile", label: "Profile", icon: UserCircle },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/favorites", label: "Favoritos", icon: Star },
+  { href: "/earnings", label: "Ganancias", icon: TrendingUp },
+  { href: "/profile", label: "Perfil", icon: UserCircle },
+  { href: "/settings", label: "Configuración", icon: Settings },
 ];
 
 function ThemeToggle(): React.ReactElement {

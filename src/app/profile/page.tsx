@@ -73,7 +73,7 @@ export default function ProfilePage(): React.ReactElement {
     void fetch("/api/settings")
       .then((r) => r.json())
       .then((data) => setSavedProfile(data as SavedProfile))
-      .catch(() => toast.error("Failed to load profile"));
+      .catch(() => toast.error("Error al cargar el perfil"));
   }, []);
 
   function toggleItem(set: Set<string>, item: string): Set<string> {
@@ -106,7 +106,7 @@ export default function ProfilePage(): React.ReactElement {
       setExcludeInput("");
       excludeInputRef.current?.focus();
     } catch {
-      toast.error("Failed to save keyword");
+      toast.error("Error al guardar la palabra clave");
     }
   }
 
@@ -121,13 +121,13 @@ export default function ProfilePage(): React.ReactElement {
       if (!res.ok) throw new Error("Save failed");
       setSavedProfile((prev) => prev ? { ...prev, excludeKeywords: updated.length > 0 ? JSON.stringify(updated) : null } : prev);
     } catch {
-      toast.error("Failed to remove keyword");
+      toast.error("Error al eliminar la palabra clave");
     }
   }
 
   async function processFile(file: File): Promise<void> {
     if (file.type !== "application/pdf") {
-      toast.error("Only PDF files are supported");
+      toast.error("Solo se admiten archivos PDF");
       return;
     }
 
@@ -142,7 +142,7 @@ export default function ProfilePage(): React.ReactElement {
       const res = await fetch("/api/profile/parse", { method: "POST", body: formData });
       const data = (await res.json()) as { titles?: string[]; skills?: string[]; error?: string };
 
-      if (!res.ok) throw new Error(data.error ?? "Failed to parse resume");
+      if (!res.ok) throw new Error(data.error ?? "Error al procesar el currículum");
 
       const parsed: ParsedSuggestions = {
         titles: data.titles ?? [],
@@ -153,7 +153,7 @@ export default function ProfilePage(): React.ReactElement {
       setCheckedTitles(new Set(parsed.titles));
       setCheckedSkills(new Set(parsed.skills));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to parse resume");
+      toast.error(err instanceof Error ? err.message : "Error al procesar el currículum");
       setFileName(null);
     } finally {
       setIsParsing(false);
@@ -191,9 +191,9 @@ export default function ProfilePage(): React.ReactElement {
         profileSkills: JSON.stringify([...checkedSkills]),
         profileTitles: JSON.stringify([...checkedTitles]),
       }));
-      toast.success("Profile saved — AI scoring and proposals updated");
+      toast.success("Perfil guardado — el scoring y las propuestas con IA han sido actualizados");
     } catch {
-      toast.error("Failed to save profile");
+      toast.error("Error al guardar el perfil");
     } finally {
       setIsSaving(false);
     }
@@ -217,9 +217,9 @@ export default function ProfilePage(): React.ReactElement {
         profileTitles: JSON.stringify(nextTitles),
         profileSkills: JSON.stringify(nextSkills),
       }));
-      toast.success("Item removed");
+      toast.success("Elemento eliminado");
     } catch {
-      toast.error("Failed to remove item");
+      toast.error("Error al eliminar el elemento");
     }
   }
 
@@ -234,9 +234,9 @@ export default function ProfilePage(): React.ReactElement {
       setSavedProfile({ profileSkills: null, profileTitles: null, excludeKeywords: null });
       setSuggestions(null);
       setFileName(null);
-      toast.success("Profile cleared — using default curriculum");
+      toast.success("Perfil eliminado — usando currículum por defecto");
     } catch {
-      toast.error("Failed to clear profile");
+      toast.error("Error al limpiar el perfil");
     }
   }
 
@@ -252,9 +252,9 @@ export default function ProfilePage(): React.ReactElement {
     <div className="flex flex-col h-full">
       <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
         <div>
-          <h1 className="text-lg font-semibold">Profile</h1>
+          <h1 className="text-lg font-semibold">Perfil</h1>
           <p className="text-xs text-muted-foreground">
-            Upload your resume to improve AI match scoring and proposal generation
+            Sube tu currículum para mejorar el scoring de compatibilidad y la generación de propuestas con IA
           </p>
         </div>
         {suggestions && (
@@ -272,17 +272,17 @@ export default function ProfilePage(): React.ReactElement {
         {hasProfile && !suggestions && (
           <section className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold">Current profile</h2>
+              <h2 className="text-sm font-semibold">Perfil actual</h2>
               <button
                 onClick={() => void clearProfile()}
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
               >
-                <X className="size-3" /> Clear all
+                <X className="size-3" /> Limpiar todo
               </button>
             </div>
             {savedTitles.length > 0 && (
               <div className="flex flex-col gap-1.5">
-                <p className="text-xs text-muted-foreground">Job titles</p>
+                <p className="text-xs text-muted-foreground">Títulos de trabajo</p>
                 <div className="flex flex-wrap gap-1.5">
                   {savedTitles.map((t) => (
                     <button
@@ -323,9 +323,9 @@ export default function ProfilePage(): React.ReactElement {
         {/* Keyword blacklist */}
         <section className="flex flex-col gap-3">
           <div>
-            <h2 className="text-sm font-semibold mb-1">Keyword blacklist</h2>
+            <h2 className="text-sm font-semibold mb-1">Lista negra de palabras clave</h2>
             <p className="text-xs text-muted-foreground mb-3">
-              Projects containing any of these keywords are automatically discarded during collection.
+              Los proyectos que contengan alguna de estas palabras se descartan automáticamente durante la recopilación.
             </p>
           </div>
           <div className="flex gap-2">
@@ -334,7 +334,7 @@ export default function ProfilePage(): React.ReactElement {
               value={excludeInput}
               onChange={(e) => setExcludeInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void addExcludeKeyword(); } }}
-              placeholder="e.g. wordpress, php, logo design"
+              placeholder="ej. wordpress, php, diseño de logos"
               className="h-8 text-sm flex-1"
             />
             <Button
@@ -344,7 +344,7 @@ export default function ProfilePage(): React.ReactElement {
               onClick={() => void addExcludeKeyword()}
               disabled={!excludeInput.trim()}
             >
-              Add
+              Agregar
             </Button>
           </div>
           {getExcludeKeywords().length > 0 ? (
@@ -366,14 +366,14 @@ export default function ProfilePage(): React.ReactElement {
               ))}
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground italic">No excluded keywords</p>
+            <p className="text-xs text-muted-foreground italic">Sin palabras excluidas</p>
           )}
           <Separator />
         </section>
 
         {/* Upload area */}
         <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold">{hasProfile ? "Update resume" : "Upload resume"}</h2>
+          <h2 className="text-sm font-semibold">{hasProfile ? "Actualizar currículum" : "Subir currículum"}</h2>
 
           <div
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -397,20 +397,20 @@ export default function ProfilePage(): React.ReactElement {
             {isParsing ? (
               <>
                 <Loader2 className="size-8 text-primary animate-spin" />
-                <p className="text-sm text-muted-foreground">Reading resume with AI…</p>
+                <p className="text-sm text-muted-foreground">Analizando currículum con IA…</p>
               </>
             ) : fileName && suggestions ? (
               <>
                 <FileText className="size-8 text-primary" />
                 <p className="text-sm font-medium">{fileName}</p>
-                <p className="text-xs text-muted-foreground">Click to upload a different file</p>
+                <p className="text-xs text-muted-foreground">Haz clic para subir un archivo diferente</p>
               </>
             ) : (
               <>
                 <Upload className="size-8 text-muted-foreground" />
                 <div className="text-center">
-                  <p className="text-sm font-medium">Drop your resume here</p>
-                  <p className="text-xs text-muted-foreground mt-1">or click to browse — PDF only, max 5MB</p>
+                  <p className="text-sm font-medium">Suelta tu currículum aquí</p>
+                  <p className="text-xs text-muted-foreground mt-1">o haz clic para buscar — solo PDF, máx. 5MB</p>
                 </div>
               </>
             )}
@@ -422,13 +422,13 @@ export default function ProfilePage(): React.ReactElement {
           <section className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Select what applies to you — uncheck anything that doesn&apos;t fit
+                Selecciona lo que corresponda — desmarca lo que no encaje
               </p>
             </div>
 
             {suggestions.titles.length > 0 && (
               <CheckboxGroup
-                label="Job titles"
+                label="Títulos de trabajo"
                 items={suggestions.titles}
                 checked={checkedTitles}
                 onToggle={(item) => setCheckedTitles((prev) => toggleItem(prev, item))}
@@ -437,7 +437,7 @@ export default function ProfilePage(): React.ReactElement {
 
             {suggestions.skills.length > 0 && (
               <CheckboxGroup
-                label="Skills"
+                label="Habilidades"
                 items={suggestions.skills}
                 checked={checkedSkills}
                 onToggle={(item) => setCheckedSkills((prev) => toggleItem(prev, item))}
@@ -446,7 +446,7 @@ export default function ProfilePage(): React.ReactElement {
 
             <Button onClick={() => void saveProfile()} disabled={isSaving} className="w-fit gap-2">
               {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-              Save profile
+              Guardar perfil
             </Button>
           </section>
         )}
