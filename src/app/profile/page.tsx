@@ -16,6 +16,7 @@ interface SavedProfile {
   profileSkills: string | null;
   profileTitles: string | null;
   excludeKeywords: string | null;
+  anthropicKeySet: boolean;
 }
 
 function CheckboxGroup({
@@ -190,6 +191,7 @@ export default function ProfilePage(): React.ReactElement {
         excludeKeywords: prev?.excludeKeywords ?? null,
         profileSkills: JSON.stringify([...checkedSkills]),
         profileTitles: JSON.stringify([...checkedTitles]),
+        anthropicKeySet: prev?.anthropicKeySet ?? false,
       }));
       toast.success("Perfil guardado — el scoring y las propuestas con IA han sido actualizados");
     } catch {
@@ -216,6 +218,7 @@ export default function ProfilePage(): React.ReactElement {
         excludeKeywords: prev?.excludeKeywords ?? null,
         profileTitles: JSON.stringify(nextTitles),
         profileSkills: JSON.stringify(nextSkills),
+        anthropicKeySet: prev?.anthropicKeySet ?? false,
       }));
       toast.success("Elemento eliminado");
     } catch {
@@ -231,7 +234,7 @@ export default function ProfilePage(): React.ReactElement {
         body: JSON.stringify({ profileSkills: null, profileTitles: null }),
       });
       if (!res.ok) throw new Error("Clear failed");
-      setSavedProfile({ profileSkills: null, profileTitles: null, excludeKeywords: null });
+      setSavedProfile((prev) => ({ ...prev, profileSkills: null, profileTitles: null, excludeKeywords: null, anthropicKeySet: prev?.anthropicKeySet ?? false }));
       setSuggestions(null);
       setFileName(null);
       toast.success("Perfil eliminado — usando currículum por defecto");
@@ -375,46 +378,62 @@ export default function ProfilePage(): React.ReactElement {
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold">{hasProfile ? "Actualizar currículum" : "Subir currículum"}</h2>
 
-          <div
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-lg p-10 cursor-pointer transition-colors ${
-              isDragging
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50 hover:bg-accent/30"
-            }`}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/pdf"
-              className="sr-only"
-              onChange={handleFileChange}
-            />
+          {!savedProfile?.anthropicKeySet ? (
+            <div className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border rounded-lg p-10 opacity-50 select-none">
+              <Upload className="size-8 text-muted-foreground" />
+              <div className="text-center">
+                <p className="text-sm font-medium text-muted-foreground">Función de IA no disponible</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Configura una clave de API en{" "}
+                  <a href="/settings" className="underline hover:text-foreground transition-colors">
+                    Configuración → Claves de API
+                  </a>{" "}
+                  para analizar tu currículum con IA.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-lg p-10 cursor-pointer transition-colors ${
+                isDragging
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50 hover:bg-accent/30"
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                className="sr-only"
+                onChange={handleFileChange}
+              />
 
-            {isParsing ? (
-              <>
-                <Loader2 className="size-8 text-primary animate-spin" />
-                <p className="text-sm text-muted-foreground">Analizando currículum con IA…</p>
-              </>
-            ) : fileName && suggestions ? (
-              <>
-                <FileText className="size-8 text-primary" />
-                <p className="text-sm font-medium">{fileName}</p>
-                <p className="text-xs text-muted-foreground">Haz clic para subir un archivo diferente</p>
-              </>
-            ) : (
-              <>
-                <Upload className="size-8 text-muted-foreground" />
-                <div className="text-center">
-                  <p className="text-sm font-medium">Suelta tu currículum aquí</p>
-                  <p className="text-xs text-muted-foreground mt-1">o haz clic para buscar — solo PDF, máx. 5MB</p>
-                </div>
-              </>
-            )}
-          </div>
+              {isParsing ? (
+                <>
+                  <Loader2 className="size-8 text-primary animate-spin" />
+                  <p className="text-sm text-muted-foreground">Analizando currículum con IA…</p>
+                </>
+              ) : fileName && suggestions ? (
+                <>
+                  <FileText className="size-8 text-primary" />
+                  <p className="text-sm font-medium">{fileName}</p>
+                  <p className="text-xs text-muted-foreground">Haz clic para subir un archivo diferente</p>
+                </>
+              ) : (
+                <>
+                  <Upload className="size-8 text-muted-foreground" />
+                  <div className="text-center">
+                    <p className="text-sm font-medium">Suelta tu currículum aquí</p>
+                    <p className="text-xs text-muted-foreground mt-1">o haz clic para buscar — solo PDF, máx. 5MB</p>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </section>
 
         {/* Suggestions after parse */}
