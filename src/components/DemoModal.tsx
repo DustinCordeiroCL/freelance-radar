@@ -52,9 +52,9 @@ export function DemoModal({ onClose }: { onClose: () => void }) {
         {/* Body */}
         <div className="px-6 py-5">
           <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-            Bienvenido/a. Este es un agregador inteligente de oportunidades freelance,
-            desarrollado como proyecto de portafolio. Recopila proyectos de múltiples
-            plataformas y los puntúa con IA según tu perfil profesional.
+            Bienvenido/a. Este es un agregador inteligente de oportunidades freelance.
+            Recopila proyectos de múltiples plataformas y los puntúa con IA según tu
+            perfil profesional.
           </p>
 
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
