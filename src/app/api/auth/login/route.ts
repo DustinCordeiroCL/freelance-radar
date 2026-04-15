@@ -1,13 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-async function hashSecret(secret: string): Promise<string> {
-  const data = new TextEncoder().encode(secret);
-  const hash = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const appSecret = process.env.APP_SECRET?.trim();
 
@@ -26,12 +18,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const password = (raw?.password ?? raw?.secret) as string | undefined;
 
   if (typeof password !== "string" || password !== appSecret) {
-    return NextResponse.json({ error: "Senha incorreta" }, { status: 401 });
+    return NextResponse.json({ error: "Contraseña incorrecta" }, { status: 401 });
   }
 
-  const token = await hashSecret(appSecret);
   const response = NextResponse.json({ ok: true });
-  response.cookies.set("fr_session", token, {
+  response.cookies.set("fr_session", appSecret, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

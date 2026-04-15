@@ -20,7 +20,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }): React.Re
       .then((data: { authRequired: boolean; authenticated: boolean }) => {
         setAuthState(data.authenticated ? "authenticated" : "unauthenticated");
       })
-      .catch(() => setAuthState("authenticated")); // Fail open for local dev
+      .catch(() => setAuthState("unauthenticated"));
   }, []);
 
   async function handleLogin(e: React.FormEvent): Promise<void> {
