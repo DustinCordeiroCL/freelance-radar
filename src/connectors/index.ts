@@ -124,9 +124,10 @@ async function saveProjects(
 }
 
 async function requeueStuckProjects(): Promise<void> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
   const dbKey = await prisma.settings.findUnique({ where: { id: 1 }, select: { anthropicKey: true } });
-  if (!apiKey && !dbKey?.anthropicKey) return; // no key — skip
+  const envKey = process.env.ANTHROPIC_API_KEY;
+  const resolvedKey = dbKey?.anthropicKey?.trim() || envKey?.trim();
+  if (!resolvedKey) return; // sem chave configurada — não enfileira
 
   const stuck = await prisma.project.findMany({
     where: { matchScore: null },

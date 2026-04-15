@@ -1,4 +1,4 @@
-import { getAnthropicClient } from "./anthropic";
+import { getAnthropicClient, NoApiKeyError } from "./anthropic";
 import { resolveAnthropicKey } from "./keys";
 import { getProfileContext } from "./profile";
 import { sendNotification } from "./notifier";
@@ -56,7 +56,7 @@ async function callScoreApi(project: ProjectData): Promise<ScoreResult> {
 
 export async function scoreProject(projectId: string): Promise<void> {
   const apiKey = await resolveAnthropicKey();
-  if (!apiKey) return;
+  if (!apiKey?.trim()) return; // sem chave — silencioso
 
   const project = await prisma.project.findUnique({ where: { id: projectId } });
 
@@ -80,15 +80,23 @@ export async function scoreProject(projectId: string): Promise<void> {
       );
     }
   } catch (err) {
-    // 401 = key inválida ou ausente — não logar stack completo nem sobrescrever o score
+    if (err instanceof NoApiKeyError) return; // chave ausente — já verificado acima, mas por segurança
+
+    // Chave inválida/revogada (401) — logar brevemente sem sobrescrever o score
     const isAuthError =
-      err instanceof Error && (err.message.includes("401") || err.message.includes("authentication_error"));
+      err instanceof Error &&
+      (err.message.includes("401") || err.message.includes("authentication_error"));
 
     if (isAuthError) {
-      console.warn(`[scorer] Sem chave de API válida — scoring ignorado para ${projectId}`);
+      console.warn("[scorer] Chave de API inválida — scoring desativado até configurar uma chave válida");
       return;
     }
 
-    console.error(`[scorer] Failed to score project ${projectId}: ${err instanceof Error ? err.message : String(err)}`);
+    // Outro erro (rede, parse, etc.) — marcar como falhou para não ficar re-enfileirando
+    console.error(`[scorer] Erro ao pontuar ${projectId}: ${err instanceof Error ? err.message : String(err)}`);
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { matchScore: 0, scoreReason: "Error de puntuación — reintenta más tarde" },
+    }).catch(() => { /* ignore */ });
   }
 }
