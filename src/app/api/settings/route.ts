@@ -106,10 +106,10 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
       invalidateProfileCache();
     }
 
-    const { anthropicKey, freelancerToken, ...safeUpdated } = updated;
+    const { anthropicKey: _ak2, freelancerToken, ...safeUpdated } = updated;
     return NextResponse.json({
       ...safeUpdated,
-      anthropicKeySet: !!anthropicKey,
+      anthropicKeySet: !!process.env.ANTHROPIC_API_KEY?.trim(),
       freelancerTokenSet: !!freelancerToken,
     });
   } catch (err) {
