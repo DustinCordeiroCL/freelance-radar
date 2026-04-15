@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Upload, Loader2, Save, X, FileText } from "lucide-react";
+import Link from "next/link";
 import { getStoredKey } from "@/lib/clientKey";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -441,9 +442,9 @@ export default function ProfilePage(): React.ReactElement {
                 <p className="text-sm font-medium text-muted-foreground">Función de IA no disponible</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Configura una clave de API en{" "}
-                  <a href="/settings" className="underline hover:text-foreground transition-colors">
+                  <Link href="/settings" className="underline hover:text-foreground transition-colors">
                     Configuración → Claves de API
-                  </a>{" "}
+                  </Link>{" "}
                   para analizar tu currículum con IA.
                 </p>
               </div>
