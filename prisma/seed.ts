@@ -27,7 +27,159 @@ function daysAgo(n: number): Date {
 }
 
 // ---------------------------------------------------------------------------
-// Dados de demo
+// Dados de demo — Ganancias (proyectos concluidos)
+// ---------------------------------------------------------------------------
+
+const COMPLETED_PROJECTS = [
+  // Noviembre
+  {
+    platform: "upwork",
+    externalId: "demo-done-upw-001",
+    title: "React Dashboard for Analytics SaaS",
+    description: "Built an analytics dashboard with real-time charts, filters and CSV export. React 18 + TypeScript + Recharts.",
+    url: "https://www.upwork.com/jobs/done-001",
+    tags: JSON.stringify(["react", "typescript", "dashboard", "recharts"]),
+    matchScore: 88,
+    scoreReason: "Stack React + TypeScript totalmente alineado.",
+    proposalStatus: "concluida",
+    proposalValue: 1800,
+    statusUpdatedAt: new Date("2025-11-12"),
+    postedAt: new Date("2025-11-01"),
+  },
+  {
+    platform: "remoteok",
+    externalId: "demo-done-rok-001",
+    title: "Node.js API Integration — Stripe + Webhooks",
+    description: "Implemented Stripe subscription billing and webhook handling for a B2B SaaS product.",
+    url: "https://remoteok.com/jobs/done-001",
+    tags: JSON.stringify(["node.js", "stripe", "api", "typescript"]),
+    matchScore: 82,
+    scoreReason: "Backend Node.js + integrações de pagamento.",
+    proposalStatus: "concluida",
+    proposalValue: 950,
+    statusUpdatedAt: new Date("2025-11-28"),
+    postedAt: new Date("2025-11-15"),
+  },
+  // Diciembre
+  {
+    platform: "trampos",
+    externalId: "demo-done-trm-001",
+    title: "MVP de Aplicativo Web — Next.js + Prisma",
+    description: "Desenvolveu MVP completo de plataforma de agendamento com autenticação, painel admin e integração com calendário.",
+    url: "https://trampos.co/done-001",
+    tags: JSON.stringify(["next.js", "prisma", "typescript", "mvp"]),
+    matchScore: 91,
+    scoreReason: "Stack idêntico ao perfil principal. Projeto bem definido.",
+    proposalStatus: "concluida",
+    proposalValue: 3200,
+    statusUpdatedAt: new Date("2025-12-15"),
+    postedAt: new Date("2025-12-01"),
+  },
+  {
+    platform: "freelancer",
+    externalId: "demo-done-frl-001",
+    title: "WhatsApp Bot + OpenAI Integration",
+    description: "Built automated customer support bot using WhatsApp Business API and OpenAI for a retail client.",
+    url: "https://www.freelancer.com/done-001",
+    tags: JSON.stringify(["whatsapp", "openai", "node.js", "api"]),
+    matchScore: 76,
+    scoreReason: "Integração de IA + messaging. Entregue dentro do prazo.",
+    proposalStatus: "concluida",
+    proposalValue: 720,
+    statusUpdatedAt: new Date("2025-12-22"),
+    postedAt: new Date("2025-12-10"),
+  },
+  // Enero
+  {
+    platform: "upwork",
+    externalId: "demo-done-upw-002",
+    title: "TypeScript Refactor — Legacy Codebase Migration",
+    description: "Migrated a 15k LOC JavaScript codebase to TypeScript with strict mode. Set up ESLint, Prettier and pre-commit hooks.",
+    url: "https://www.upwork.com/jobs/done-002",
+    tags: JSON.stringify(["typescript", "refactoring", "eslint", "node.js"]),
+    matchScore: 85,
+    scoreReason: "TypeScript + qualidade de código são diferenciais do perfil.",
+    proposalStatus: "concluida",
+    proposalValue: 2400,
+    statusUpdatedAt: new Date("2026-01-18"),
+    postedAt: new Date("2026-01-05"),
+  },
+  {
+    platform: "torre",
+    externalId: "demo-done-tor-001",
+    title: "Frontend Engineer — Design System Implementation",
+    description: "Built a component library from scratch using React + Tailwind + Storybook for a fintech startup.",
+    url: "https://torre.ai/done-001",
+    tags: JSON.stringify(["react", "tailwind", "storybook", "design system"]),
+    matchScore: 89,
+    scoreReason: "Design system + React + Tailwind — combinação exata do perfil.",
+    proposalStatus: "concluida",
+    proposalValue: 1650,
+    statusUpdatedAt: new Date("2026-01-30"),
+    postedAt: new Date("2026-01-15"),
+  },
+  // Febrero
+  {
+    platform: "remotive",
+    externalId: "demo-done-rem-001",
+    title: "AI Feature Integration — Claude API + Next.js",
+    description: "Integrated Claude API into an existing Next.js SaaS to power smart text suggestions and document summarization.",
+    url: "https://remotive.com/done-001",
+    tags: JSON.stringify(["claude", "ai", "next.js", "typescript"]),
+    matchScore: 94,
+    scoreReason: "Claude API + Next.js — match perfeito com stack atual.",
+    proposalStatus: "concluida",
+    proposalValue: 2800,
+    statusUpdatedAt: new Date("2026-02-14"),
+    postedAt: new Date("2026-02-01"),
+  },
+  {
+    platform: "guru",
+    externalId: "demo-done-gur-001",
+    title: "Client Portal — React + Firebase Auth",
+    description: "Delivered a secure client portal with role-based access, file uploads and real-time notifications.",
+    url: "https://www.guru.com/done-001",
+    tags: JSON.stringify(["react", "firebase", "typescript", "portal"]),
+    matchScore: 74,
+    scoreReason: "React + auth — área de domínio, Firebase é adjacente.",
+    proposalStatus: "concluida",
+    proposalValue: 1100,
+    statusUpdatedAt: new Date("2026-02-27"),
+    postedAt: new Date("2026-02-10"),
+  },
+  // Marzo
+  {
+    platform: "upwork",
+    externalId: "demo-done-upw-003",
+    title: "E-commerce Checkout Optimization — Next.js",
+    description: "Rebuilt checkout flow reducing cart abandonment by 23%. Implemented SSR, optimistic UI and Stripe Elements.",
+    url: "https://www.upwork.com/jobs/done-003",
+    tags: JSON.stringify(["next.js", "stripe", "e-commerce", "performance"]),
+    matchScore: 86,
+    scoreReason: "Next.js + Stripe + performance. Impacto mensurável no negócio.",
+    proposalStatus: "concluida",
+    proposalValue: 3500,
+    statusUpdatedAt: new Date("2026-03-20"),
+    postedAt: new Date("2026-03-03"),
+  },
+  {
+    platform: "trampos",
+    externalId: "demo-done-trm-002",
+    title: "Painel Administrativo — React + API REST",
+    description: "Construiu painel de gestão de pedidos com tabelas, filtros avançados, exportação e gráficos em tempo real.",
+    url: "https://trampos.co/done-002",
+    tags: JSON.stringify(["react", "typescript", "dashboard", "api"]),
+    matchScore: 83,
+    scoreReason: "CRUD + dashboard React. Projeto bem delimitado.",
+    proposalStatus: "concluida",
+    proposalValue: 1900,
+    statusUpdatedAt: new Date("2026-03-31"),
+    postedAt: new Date("2026-03-15"),
+  },
+] as const;
+
+// ---------------------------------------------------------------------------
+// Dados de demo — Projetos ativos
 // ---------------------------------------------------------------------------
 
 const DEMO_PROJECTS = [
@@ -308,10 +460,38 @@ async function main() {
 
   console.log("✓ Settings configurados (conectores Playwright desativados)\n");
 
-  // 2. Inserir projetos de demo
+  // 2. Inserir projetos concluídos (Ganancias)
   let inserted = 0;
   let skipped = 0;
 
+  for (const project of COMPLETED_PROJECTS) {
+    const existing = await prisma.project.findUnique({
+      where: { platform_externalId: { platform: project.platform, externalId: project.externalId } },
+    });
+    if (existing) { skipped++; continue; }
+
+    await prisma.project.create({
+      data: {
+        platform: project.platform,
+        externalId: project.externalId,
+        title: project.title,
+        description: project.description,
+        url: project.url,
+        tags: project.tags,
+        matchScore: project.matchScore,
+        scoreReason: project.scoreReason,
+        proposalStatus: project.proposalStatus,
+        proposalValue: project.proposalValue,
+        statusUpdatedAt: project.statusUpdatedAt,
+        postedAt: project.postedAt,
+        collectedAt: project.postedAt,
+      },
+    });
+    inserted++;
+    console.log(`  ✓ [concluido][${project.platform}] ${project.title.slice(0, 55)}...`);
+  }
+
+  // 3. Inserir projetos ativos (dashboard)
   for (const project of DEMO_PROJECTS) {
     const { isDiscarded = false, isFavorite = false, proposalStatus, proposalText, statusUpdatedAt, ...rest } = project as typeof project & {
       isDiscarded?: boolean;

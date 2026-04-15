@@ -17,12 +17,20 @@ import {
 import type { EarningsData } from "@/app/api/earnings/route";
 
 const PLATFORM_COLORS: Record<string, string> = {
+  upwork: "#14a800",
+  remoteok: "#ff4c29",
+  weworkremotely: "#1a1a2e",
+  remotive: "#6366f1",
+  trampos: "#f59e0b",
+  torre: "#0ea5e9",
+  guru: "#10b981",
+  freelancer: "#0088cc",
   workana: "#3b82f6",
-  freelancer: "#f59e0b",
-  "99freelas": "#10b981",
-  indeed: "#8b5cf6",
+  "99freelas": "#8b5cf6",
+  indeed: "#2164f3",
   soyfreelancer: "#ef4444",
-  upwork: "#06b6d4",
+  programathor: "#e11d48",
+  getonboard: "#059669",
 };
 
 function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }): React.ReactElement {
