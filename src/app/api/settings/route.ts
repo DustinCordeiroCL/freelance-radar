@@ -13,10 +13,11 @@ async function getOrCreateSettings() {
 export async function GET(): Promise<NextResponse> {
   try {
     const settings = await getOrCreateSettings();
-    const { anthropicKey, freelancerToken, ...safeSettings } = settings;
+    const { anthropicKey: _ak, freelancerToken, ...safeSettings } = settings;
     return NextResponse.json({
       ...safeSettings,
-      anthropicKeySet: !!anthropicKey,
+      // anthropicKeySet reflects only the server env var — client key lives in localStorage
+      anthropicKeySet: !!process.env.ANTHROPIC_API_KEY?.trim(),
       freelancerTokenSet: !!freelancerToken,
     });
   } catch (err) {

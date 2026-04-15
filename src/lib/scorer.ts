@@ -1,5 +1,4 @@
 import { getAnthropicClient, NoApiKeyError } from "./anthropic";
-import { resolveAnthropicKey } from "./keys";
 import { getProfileContext } from "./profile";
 import { sendNotification } from "./notifier";
 import { prisma } from "./db";
@@ -17,8 +16,8 @@ interface ProjectData {
   budget: string | null;
 }
 
-async function callScoreApi(project: ProjectData): Promise<ScoreResult> {
-  const client = await getAnthropicClient();
+async function callScoreApi(project: ProjectData, apiKey: string): Promise<ScoreResult> {
+  const client = getAnthropicClient(apiKey);
   const profileContext = await getProfileContext();
 
   const message = await client.messages.create({
@@ -42,28 +41,24 @@ async function callScoreApi(project: ProjectData): Promise<ScoreResult> {
   });
 
   const text = message.content[0].type === "text" ? message.content[0].text : "";
-
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error(`Unexpected API response: ${text}`);
 
   const parsed = JSON.parse(jsonMatch[0]) as { score?: unknown; reason?: unknown };
-
   const score = typeof parsed.score === "number" ? Math.min(100, Math.max(0, Math.round(parsed.score))) : 0;
   const reason = typeof parsed.reason === "string" ? parsed.reason : "";
 
   return { score, reason };
 }
 
-export async function scoreProject(projectId: string): Promise<void> {
-  const apiKey = await resolveAnthropicKey();
-  if (!apiKey?.trim()) return; // sem chave — silencioso
+export async function scoreProject(projectId: string, apiKey: string): Promise<void> {
+  if (!apiKey.trim()) return;
 
   const project = await prisma.project.findUnique({ where: { id: projectId } });
-
   if (!project || project.matchScore !== null) return;
 
   try {
-    const { score, reason } = await callScoreApi(project);
+    const { score, reason } = await callScoreApi(project, apiKey);
 
     await prisma.project.update({
       where: { id: projectId },
@@ -74,25 +69,20 @@ export async function scoreProject(projectId: string): Promise<void> {
 
     const settings = await prisma.settings.findUnique({ where: { id: 1 } });
     if (settings && score >= settings.scoreAlertThreshold) {
-      sendNotification(
-        `FreelanceRadar — High match (${score})`,
-        project.title
-      );
+      sendNotification(`FreelanceRadar — High match (${score})`, project.title);
     }
   } catch (err) {
-    if (err instanceof NoApiKeyError) return; // chave ausente — já verificado acima, mas por segurança
+    if (err instanceof NoApiKeyError) return;
 
-    // Chave inválida/revogada (401) — logar brevemente sem sobrescrever o score
     const isAuthError =
       err instanceof Error &&
       (err.message.includes("401") || err.message.includes("authentication_error"));
 
     if (isAuthError) {
-      console.warn("[scorer] Chave de API inválida — scoring desativado até configurar uma chave válida");
+      console.warn("[scorer] Chave de API inválida — scoring ignorado");
       return;
     }
 
-    // Outro erro (rede, parse, etc.) — marcar como falhou para não ficar re-enfileirando
     console.error(`[scorer] Erro ao pontuar ${projectId}: ${err instanceof Error ? err.message : String(err)}`);
     await prisma.project.update({
       where: { id: projectId },

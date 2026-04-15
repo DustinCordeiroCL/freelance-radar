@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { PlatformBadge } from "./PlatformBadge";
 import { ScoreBadge } from "./ScoreBadge";
 import type { Project } from "@/types/project";
+import { getStoredKey } from "@/lib/clientKey";
 
 interface ProposalModalProps {
   project: Project | null;
@@ -36,7 +37,10 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
     try {
       const res = await fetch("/api/proposal", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-anthropic-key": getStoredKey(),
+        },
         body: JSON.stringify({ projectId: project.id }),
       });
       if (!res.ok) {

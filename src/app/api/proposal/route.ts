@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAnthropicClient } from "@/lib/anthropic";
+import { getAnthropicClient, NoApiKeyError } from "@/lib/anthropic";
 import { resolveAnthropicKey } from "@/lib/keys";
 import { getProfileContext } from "@/lib/profile";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  // 10 proposals per minute per IP
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? "local";
   if (!checkRateLimit(`proposal:${ip}`, 10, 60_000)) {
     return NextResponse.json({ error: "Too many requests — try again in a minute" }, { status: 429 });
   }
 
-  const apiKey = await resolveAnthropicKey();
+  const headerKey = request.headers.get("x-anthropic-key");
+  const apiKey = resolveAnthropicKey(headerKey);
   if (!apiKey) {
-    return NextResponse.json({ error: "Anthropic API key is not configured. Add it in Settings → API Keys." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Configura una clave de API de Anthropic en Configuración para generar propuestas." },
+      { status: 503 }
+    );
   }
 
   let body: unknown;
@@ -25,19 +28,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const { projectId } = body as { projectId?: string };
-
-  if (!projectId) {
-    return NextResponse.json({ error: "projectId is required" }, { status: 400 });
-  }
+  if (!projectId) return NextResponse.json({ error: "projectId is required" }, { status: 400 });
 
   const project = await prisma.project.findUnique({ where: { id: projectId } });
-
-  if (!project) {
-    return NextResponse.json({ error: "Project not found" }, { status: 404 });
-  }
+  if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
   try {
-    const client = await getAnthropicClient();
+    const client = getAnthropicClient(apiKey);
     const profileContext = await getProfileContext();
 
     const message = await client.messages.create({
@@ -63,11 +60,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       ],
     });
 
-    const proposalText =
-      message.content[0].type === "text" ? message.content[0].text.trim() : "";
-
+    const proposalText = message.content[0].type === "text" ? message.content[0].text.trim() : "";
     return NextResponse.json({ proposalText });
   } catch (err) {
+    if (err instanceof NoApiKeyError) {
+      return NextResponse.json(
+        { error: "Configura una clave de API de Anthropic en Configuración para generar propuestas." },
+        { status: 503 }
+      );
+    }
     const message = err instanceof Error ? err.message : "Unknown error";
     if (process.env.NODE_ENV !== "production") console.error("[api/proposal] AI generation failed:", message);
     return NextResponse.json({ error: message }, { status: 500 });

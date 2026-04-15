@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { getStoredKey } from "@/lib/clientKey";
 
 interface CollectResult {
   platform: string;
@@ -28,24 +29,27 @@ export function useCollect(onSuccess?: () => void): {
     if (isCollecting) return;
     setIsCollecting(true);
 
-    const toastId = toast.loading("Collecting opportunities...");
+    const toastId = toast.loading("Recopilando oportunidades...");
 
     try {
-      const res = await fetch("/api/collect", { method: "POST" });
+      const res = await fetch("/api/collect", {
+        method: "POST",
+        headers: { "x-anthropic-key": getStoredKey() },
+      });
       if (!res.ok) throw new Error("Collection failed");
 
       const data = (await res.json()) as CollectResponse;
       setLastCollectedAt(new Date());
 
       toast.success(
-        `Collection complete — ${data.totalSaved} new project${data.totalSaved !== 1 ? "s" : ""} saved`,
+        `Recopilación completa — ${data.totalSaved} proyecto${data.totalSaved !== 1 ? "s" : ""} nuevo${data.totalSaved !== 1 ? "s" : ""}`,
         { id: toastId }
       );
 
       onSuccess?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      toast.error(`Collection failed: ${message}`, { id: toastId });
+      toast.error(`Error al recopilar: ${message}`, { id: toastId });
     } finally {
       setIsCollecting(false);
     }

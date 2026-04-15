@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Upload, Loader2, Save, X, FileText } from "lucide-react";
+import { getStoredKey } from "@/lib/clientKey";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -59,6 +60,7 @@ function CheckboxGroup({
 
 export default function ProfilePage(): React.ReactElement {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [hasApiKey, setHasApiKey] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -71,6 +73,7 @@ export default function ProfilePage(): React.ReactElement {
   const excludeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    setHasApiKey(!!getStoredKey());
     void fetch("/api/settings")
       .then((r) => r.json())
       .then((data) => setSavedProfile(data as SavedProfile))
@@ -140,7 +143,11 @@ export default function ProfilePage(): React.ReactElement {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("/api/profile/parse", { method: "POST", body: formData });
+      const res = await fetch("/api/profile/parse", {
+        method: "POST",
+        headers: { "x-anthropic-key": getStoredKey() },
+        body: formData,
+      });
       const data = (await res.json()) as { titles?: string[]; skills?: string[]; error?: string };
 
       if (!res.ok) throw new Error(data.error ?? "Error al procesar el currículum");
@@ -378,7 +385,7 @@ export default function ProfilePage(): React.ReactElement {
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold">{hasProfile ? "Actualizar currículum" : "Subir currículum"}</h2>
 
-          {!savedProfile?.anthropicKeySet ? (
+          {!hasApiKey ? (
             <div className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border rounded-lg p-10 opacity-50 select-none">
               <Upload className="size-8 text-muted-foreground" />
               <div className="text-center">

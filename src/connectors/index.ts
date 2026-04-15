@@ -70,7 +70,8 @@ function isRelevant(project: RawProject, { include, exclude }: ProfileKeywords):
 async function saveProjects(
   platform: string,
   projects: RawProject[],
-  keywords: ProfileKeywords
+  keywords: ProfileKeywords,
+  apiKey = ""
 ): Promise<{ saved: number; skipped: number }> {
   const relevant = projects.filter((p) => p.preFiltered || isRelevant(p, keywords));
   const skipped = projects.length - relevant.length;
@@ -118,40 +119,37 @@ async function saveProjects(
     where: { platform, externalId: { in: newProjects.map((p) => p.externalId) } },
     select: { id: true },
   });
-  for (const { id } of inserted) enqueueScore(id);
+  for (const { id } of inserted) enqueueScore(id, apiKey);
 
   return { saved: newProjects.length, skipped };
 }
 
-async function requeueStuckProjects(): Promise<void> {
-  const dbKey = await prisma.settings.findUnique({ where: { id: 1 }, select: { anthropicKey: true } });
-  const envKey = process.env.ANTHROPIC_API_KEY;
-  const resolvedKey = dbKey?.anthropicKey?.trim() || envKey?.trim();
-  if (!resolvedKey) return; // sem chave configurada — não enfileira
+async function requeueStuckProjects(apiKey: string): Promise<void> {
+  if (!apiKey.trim()) return;
 
   const stuck = await prisma.project.findMany({
     where: { matchScore: null },
     select: { id: true },
     orderBy: { collectedAt: "desc" },
-    take: 50, // cap to avoid overwhelming the queue
+    take: 50,
   });
 
   if (stuck.length > 0) {
     console.log(`[collect] Re-queuing ${stuck.length} stuck projects for scoring`);
     for (const { id } of stuck) {
-      enqueueScore(id);
+      enqueueScore(id, apiKey);
     }
   }
 }
 
-export async function runCollection(): Promise<CollectResult[]> {
+export async function runCollection(apiKey = ""): Promise<CollectResult[]> {
   await ensureSettings();
 
   const settings = await prisma.settings.findUnique({ where: { id: 1 } });
   if (!settings) return [];
 
-  // Re-queue any projects that got stuck with null score from previous runs
-  void requeueStuckProjects();
+  const resolvedKey = apiKey.trim() || process.env.ANTHROPIC_API_KEY?.trim() || "";
+  void requeueStuckProjects(resolvedKey);
 
   const profileKeywords = await getProfileKeywords();
 
@@ -196,7 +194,7 @@ export async function runCollection(): Promise<CollectResult[]> {
     active.map(async ({ platform, fn }) => {
       console.log(`[collect] Starting ${platform}...`);
       const projects = await fn(profileKeywords.include);
-      const { saved, skipped } = await saveProjects(platform, projects, profileKeywords);
+      const { saved, skipped } = await saveProjects(platform, projects, profileKeywords, resolvedKey);
       console.log(
         `[collect] ${platform}: collected ${projects.length}, saved ${saved} new, skipped ${skipped} irrelevant`
       );

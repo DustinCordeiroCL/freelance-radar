@@ -17,10 +17,11 @@ async function extractTextFromPdf(buffer: Buffer): Promise<string> {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const apiKey = await resolveAnthropicKey();
+  const headerKey = request.headers.get("x-anthropic-key");
+  const apiKey = resolveAnthropicKey(headerKey);
   if (!apiKey) {
     return NextResponse.json(
-      { error: "Anthropic API key is not configured. Add it in Settings → API Keys." },
+      { error: "Configura una clave de API de Anthropic en Configuración para analizar el currículum." },
       { status: 503 }
     );
   }
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const client = await getAnthropicClient();
+    const client = getAnthropicClient(apiKey);
 
     const message = await client.messages.create({
       model: "claude-sonnet-4-20250514",

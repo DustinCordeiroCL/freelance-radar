@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { InfoPopover } from "@/components/InfoPopover";
+import { getStoredKey, setStoredKey, clearStoredKey } from "@/lib/clientKey";
 
 interface Settings {
   id: number;
@@ -92,13 +93,15 @@ export default function SettingsPage(): React.ReactElement {
   const [freelancerToken, setFreelancerToken] = useState("");
 
   useEffect(() => {
+    // Load anthropic key from localStorage (never from DB)
+    const stored = getStoredKey();
+    if (stored) setAnthropicKey(stored);
+
     void fetch("/api/settings")
       .then((r) => r.json())
       .then((data) => {
         const s = data as Settings;
         setSettings(s);
-        // Keys are never returned from the API — inputs start empty so user can re-enter if needed
-        setAnthropicKey("");
         setFreelancerToken("");
       })
       .catch(() => toast.error("Error al cargar la configuración"));
@@ -133,8 +136,6 @@ export default function SettingsPage(): React.ReactElement {
         followUpDays: settings.followUpDays,
         scoreAlertThreshold: settings.scoreAlertThreshold,
       };
-      // Only send keys if the user typed something (blank = keep existing)
-      if (anthropicKey) payload.anthropicKey = anthropicKey;
       if (freelancerToken) payload.freelancerToken = freelancerToken;
 
       const res = await fetch("/api/settings", {
@@ -143,6 +144,16 @@ export default function SettingsPage(): React.ReactElement {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Save failed");
+
+      // Anthropic key: save/clear in localStorage only (never sent to DB)
+      if (anthropicKey.trim()) {
+        setStoredKey(anthropicKey);
+        setSettings((prev) => prev ? { ...prev, anthropicKeySet: true } : prev);
+      } else {
+        clearStoredKey();
+        setSettings((prev) => prev ? { ...prev, anthropicKeySet: false } : prev);
+      }
+
       toast.success("Configuración guardada");
     } catch {
       toast.error("Error al guardar la configuración");
@@ -194,13 +205,13 @@ export default function SettingsPage(): React.ReactElement {
               <ApiKeyInput
                 value={anthropicKey}
                 onChange={setAnthropicKey}
-                placeholder={settings.anthropicKeySet ? "Dejar vacío para mantener la clave actual" : "sk-ant-..."}
+                placeholder="sk-ant-..."
               />
-              {!settings.anthropicKeySet && !anthropicKey && (
+              {!anthropicKey && (
                 <p className="text-xs text-amber-500">Clave no configurada — el scoring y las propuestas con IA están desactivados</p>
               )}
-              {settings.anthropicKeySet && !anthropicKey && (
-                <p className="text-xs text-emerald-500">Clave configurada — dejar vacío para mantenerla</p>
+              {anthropicKey && (
+                <p className="text-xs text-emerald-500">Clave guardada localmente en este navegador — no se envía al servidor</p>
               )}
             </div>
 
