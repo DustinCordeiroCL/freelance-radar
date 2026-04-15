@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Copy, RefreshCw, Save, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import {
@@ -25,6 +26,7 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
   const [proposalText, setProposalText] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const hasApiKey = !!getStoredKey();
 
   useEffect(() => {
     if (!project) return;
@@ -117,6 +119,16 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
                   <Loader2 className="size-6 animate-spin" />
                   <p className="text-sm">Generando propuesta...</p>
                 </div>
+              ) : !hasApiKey ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3 border border-dashed border-border rounded-md text-muted-foreground">
+                  <p className="text-xs text-center px-4">
+                    Configura una clave de API en{" "}
+                    <Link href="/settings" className="underline hover:text-foreground transition-colors" onClick={onClose}>
+                      Configuración
+                    </Link>{" "}
+                    para generar propuestas con IA.
+                  </p>
+                </div>
               ) : proposalText ? (
                 <textarea
                   value={proposalText}
@@ -150,18 +162,22 @@ export function ProposalModal({ project, onClose, onProposalSaved }: ProposalMod
 
           {proposalText && (
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => void generateProposal()} disabled={isGenerating || isSaving} className="gap-1.5">
-                <RefreshCw className={`size-3.5 ${isGenerating ? "animate-spin" : ""}`} />
-                Regenerar
-              </Button>
+              {hasApiKey && (
+                <Button variant="outline" size="sm" onClick={() => void generateProposal()} disabled={isGenerating || isSaving} className="gap-1.5">
+                  <RefreshCw className={`size-3.5 ${isGenerating ? "animate-spin" : ""}`} />
+                  Regenerar
+                </Button>
+              )}
               <Button variant="outline" size="sm" onClick={() => void copyProposal()} disabled={isGenerating} className="gap-1.5">
                 <Copy className="size-3.5" />
                 Copiar
               </Button>
-              <Button size="sm" onClick={() => void saveProposal()} disabled={isGenerating || isSaving} className="gap-1.5">
-                {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
-                Guardar
-              </Button>
+              {hasApiKey && (
+                <Button size="sm" onClick={() => void saveProposal()} disabled={isGenerating || isSaving} className="gap-1.5">
+                  {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
+                  Guardar
+                </Button>
+              )}
             </div>
           )}
         </div>
