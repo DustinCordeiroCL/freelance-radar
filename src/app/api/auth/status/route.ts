@@ -1,15 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const appSecret = process.env.APP_SECRET;
+async function hashSecret(secret: string): Promise<string> {
+  const data = new TextEncoder().encode(secret);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 
-  // No secret configured — auth not required
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  const appSecret = process.env.APP_SECRET?.trim();
+
   if (!appSecret) {
     return NextResponse.json({ authRequired: false, authenticated: true });
   }
 
-  const cookieSession = request.cookies.get("app_session")?.value;
-  const authenticated = cookieSession === appSecret;
+  const session = request.cookies.get("fr_session")?.value;
+  if (!session) {
+    return NextResponse.json({ authRequired: true, authenticated: false });
+  }
 
-  return NextResponse.json({ authRequired: true, authenticated });
+  const expected = await hashSecret(appSecret);
+  return NextResponse.json({ authRequired: true, authenticated: session === expected });
 }
