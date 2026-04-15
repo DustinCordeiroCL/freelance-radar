@@ -98,7 +98,10 @@ export default function SettingsPage(): React.ReactElement {
     if (stored) setAnthropicKey(stored);
 
     void fetch("/api/settings")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         const s = data as Settings;
         setSettings(s);

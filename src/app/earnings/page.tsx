@@ -54,14 +54,17 @@ export default function EarningsPage(): React.ReactElement {
 
   useEffect(() => {
     void fetch("/api/earnings")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        return r.json();
+      })
       .then((d) => setData(d as EarningsData))
       .catch(() => toast.error("Error al cargar los datos de ganancias"))
       .finally(() => setIsLoading(false));
   }, []);
 
   // Collect all platform names that appear in monthly data
-  const platformsInChart = data
+  const platformsInChart = data?.monthly
     ? [...new Set(data.monthly.flatMap((m) => Object.keys(m.platforms)))]
     : [];
 
