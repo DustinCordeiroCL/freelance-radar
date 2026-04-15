@@ -35,9 +35,9 @@ function CheckboxGroup({
     <div className="flex flex-col gap-2">
       <p className="text-sm font-semibold">{label}</p>
       <div className="flex flex-wrap gap-2">
-        {items.map((item) => (
+        {items.map((item, i) => (
           <label
-            key={item}
+            key={`${item}-${i}`}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs cursor-pointer transition-colors select-none ${
               checked.has(item)
                 ? "bg-primary/10 border-primary text-primary"
@@ -153,8 +153,8 @@ export default function ProfilePage(): React.ReactElement {
       if (!res.ok) throw new Error(data.error ?? "Error al procesar el currículum");
 
       const parsed: ParsedSuggestions = {
-        titles: data.titles ?? [],
-        skills: data.skills ?? [],
+        titles: [...new Set(data.titles ?? [])],
+        skills: [...new Set(data.skills ?? [])],
       };
 
       setSuggestions(parsed);
@@ -267,16 +267,65 @@ export default function ProfilePage(): React.ReactElement {
             Sube tu currículum para mejorar el scoring de compatibilidad y la generación de propuestas con IA
           </p>
         </div>
-        {suggestions && (
-          <Button size="sm" onClick={() => void saveProfile()} disabled={isSaving} className="gap-2">
-            {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            Save profile
-          </Button>
-        )}
       </header>
 
       <div className="flex-1 overflow-y-auto bg-background">
       <div className="max-w-2xl p-6 space-y-8">
+
+        {/* Suggestions after parse — shown first so layout is stable */}
+        {suggestions && (
+          <section className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Selecciona lo que corresponda — desmarca lo que no encaje
+              </p>
+              <button
+                onClick={() => { setSuggestions(null); setFileName(null); }}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+
+            {suggestions.titles.length > 0 && (
+              <CheckboxGroup
+                label="Títulos de trabajo"
+                items={suggestions.titles}
+                checked={checkedTitles}
+                onToggle={(item) => setCheckedTitles((prev) => toggleItem(prev, item))}
+              />
+            )}
+
+            {suggestions.skills.length > 0 && (
+              <CheckboxGroup
+                label="Habilidades"
+                items={suggestions.skills}
+                checked={checkedSkills}
+                onToggle={(item) => setCheckedSkills((prev) => toggleItem(prev, item))}
+              />
+            )}
+
+            <div className="flex items-center gap-3">
+              <Button onClick={() => void saveProfile()} disabled={isSaving} className="gap-2">
+                {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                Guardar perfil
+              </Button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline"
+              >
+                {fileName ?? "Usar otro archivo"}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                className="sr-only"
+                onChange={handleFileChange}
+              />
+            </div>
+          </section>
+        )}
 
         {/* Current saved profile */}
         {hasProfile && !suggestions && (
@@ -381,8 +430,8 @@ export default function ProfilePage(): React.ReactElement {
           <Separator />
         </section>
 
-        {/* Upload area */}
-        <section className="flex flex-col gap-3">
+        {/* Upload area — hidden when suggestions are active (link inside suggestions section) */}
+        {!suggestions && <section className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold">{hasProfile ? "Actualizar currículum" : "Subir currículum"}</h2>
 
           {!hasApiKey ? (
@@ -441,41 +490,7 @@ export default function ProfilePage(): React.ReactElement {
               )}
             </div>
           )}
-        </section>
-
-        {/* Suggestions after parse */}
-        {suggestions && (
-          <section className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                Selecciona lo que corresponda — desmarca lo que no encaje
-              </p>
-            </div>
-
-            {suggestions.titles.length > 0 && (
-              <CheckboxGroup
-                label="Títulos de trabajo"
-                items={suggestions.titles}
-                checked={checkedTitles}
-                onToggle={(item) => setCheckedTitles((prev) => toggleItem(prev, item))}
-              />
-            )}
-
-            {suggestions.skills.length > 0 && (
-              <CheckboxGroup
-                label="Habilidades"
-                items={suggestions.skills}
-                checked={checkedSkills}
-                onToggle={(item) => setCheckedSkills((prev) => toggleItem(prev, item))}
-              />
-            )}
-
-            <Button onClick={() => void saveProfile()} disabled={isSaving} className="w-fit gap-2">
-              {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-              Guardar perfil
-            </Button>
-          </section>
-        )}
+        </section>}
 
       </div>
       </div>
