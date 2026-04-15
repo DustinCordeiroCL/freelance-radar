@@ -22,7 +22,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const password = (body as Record<string, unknown>)?.password;
+  const raw = body as Record<string, unknown>;
+  const password = (raw?.password ?? raw?.secret) as string | undefined;
 
   if (typeof password !== "string" || password !== appSecret) {
     return NextResponse.json({ error: "Senha incorreta" }, { status: 401 });
