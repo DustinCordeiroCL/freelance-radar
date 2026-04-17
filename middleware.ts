@@ -15,7 +15,7 @@ export function middleware(request: NextRequest): NextResponse {
 
   // For API routes, check cookie or header
   if (pathname.startsWith("/api/")) {
-    const cookieSession = request.cookies.get("app_session")?.value;
+    const cookieSession = request.cookies.get("fr_session")?.value;
     const headerSecret = request.headers.get("x-app-secret");
 
     if (cookieSession === appSecret || headerSecret === appSecret) {
