@@ -7,7 +7,6 @@ import Link from "next/link";
 import { getStoredKey } from "@/lib/clientKey";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 
 interface ParsedSuggestions {
   titles: string[];
@@ -271,11 +270,11 @@ export default function ProfilePage(): React.ReactElement {
       </header>
 
       <div className="flex-1 overflow-y-auto bg-background">
-      <div className="max-w-2xl p-6 space-y-8">
+      <div className="max-w-2xl p-6 space-y-4">
 
-        {/* Suggestions after parse — shown first so layout is stable */}
+        {/* Suggestions after parse */}
         {suggestions && (
-          <section className="flex flex-col gap-6">
+          <section className="rounded-xl border border-border bg-card p-5 flex flex-col gap-5">
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
                 Selecciona lo que corresponda — desmarca lo que no encaje
@@ -330,7 +329,7 @@ export default function ProfilePage(): React.ReactElement {
 
         {/* Current saved profile */}
         {hasProfile && !suggestions && (
-          <section className="flex flex-col gap-3">
+          <section className="rounded-xl border border-border bg-card p-5 flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold">Perfil actual</h2>
               <button
@@ -376,15 +375,14 @@ export default function ProfilePage(): React.ReactElement {
                 </div>
               </div>
             )}
-            <Separator />
           </section>
         )}
 
         {/* Keyword blacklist */}
-        <section className="flex flex-col gap-3">
+        <section className="rounded-xl border border-border bg-card p-5 flex flex-col gap-3">
           <div>
-            <h2 className="text-sm font-semibold mb-1">Lista negra de palabras clave</h2>
-            <p className="text-xs text-muted-foreground mb-3">
+            <h2 className="text-sm font-semibold mb-0.5">Lista negra de palabras clave</h2>
+            <p className="text-xs text-muted-foreground">
               Los proyectos que contengan alguna de estas palabras se descartan automáticamente durante la recopilación.
             </p>
           </div>
@@ -428,70 +426,71 @@ export default function ProfilePage(): React.ReactElement {
           ) : (
             <p className="text-xs text-muted-foreground italic">Sin palabras excluidas</p>
           )}
-          <Separator />
         </section>
 
-        {/* Upload area — hidden when suggestions are active (link inside suggestions section) */}
-        {!suggestions && <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold">{hasProfile ? "Actualizar currículum" : "Subir currículum"}</h2>
+        {/* Upload area */}
+        {!suggestions && (
+          <section className="rounded-xl border border-border bg-card p-5 flex flex-col gap-3">
+            <h2 className="text-sm font-semibold">{hasProfile ? "Actualizar currículum" : "Subir currículum"}</h2>
 
-          {!hasApiKey ? (
-            <div className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border rounded-lg p-10 opacity-50 select-none">
-              <Upload className="size-8 text-muted-foreground" />
-              <div className="text-center">
-                <p className="text-sm font-medium text-muted-foreground">Función de IA no disponible</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Configura una clave de API en{" "}
-                  <Link href="/settings" className="underline hover:text-foreground transition-colors">
-                    Configuración → Claves de API
-                  </Link>{" "}
-                  para analizar tu currículum con IA.
-                </p>
+            {!hasApiKey ? (
+              <div className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border rounded-xl p-10 opacity-50 select-none">
+                <Upload className="size-8 text-muted-foreground" />
+                <div className="text-center">
+                  <p className="text-sm font-medium text-muted-foreground">Función de IA no disponible</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Configura una clave de API en{" "}
+                    <Link href="/settings" className="underline hover:text-foreground transition-colors">
+                      Configuración → Claves de API
+                    </Link>{" "}
+                    para analizar tu currículum con IA.
+                  </p>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div
-              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-lg p-10 cursor-pointer transition-colors ${
-                isDragging
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50 hover:bg-accent/30"
-              }`}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="application/pdf"
-                className="sr-only"
-                onChange={handleFileChange}
-              />
+            ) : (
+              <div
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-xl p-10 cursor-pointer transition-colors ${
+                  isDragging
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50 hover:bg-accent/30"
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  className="sr-only"
+                  onChange={handleFileChange}
+                />
 
-              {isParsing ? (
-                <>
-                  <Loader2 className="size-8 text-primary animate-spin" />
-                  <p className="text-sm text-muted-foreground">Analizando currículum con IA…</p>
-                </>
-              ) : fileName && suggestions ? (
-                <>
-                  <FileText className="size-8 text-primary" />
-                  <p className="text-sm font-medium">{fileName}</p>
-                  <p className="text-xs text-muted-foreground">Haz clic para subir un archivo diferente</p>
-                </>
-              ) : (
-                <>
-                  <Upload className="size-8 text-muted-foreground" />
-                  <div className="text-center">
-                    <p className="text-sm font-medium">Suelta tu currículum aquí</p>
-                    <p className="text-xs text-muted-foreground mt-1">o haz clic para buscar — solo PDF, máx. 5MB</p>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </section>}
+                {isParsing ? (
+                  <>
+                    <Loader2 className="size-8 text-primary animate-spin" />
+                    <p className="text-sm text-muted-foreground">Analizando currículum con IA…</p>
+                  </>
+                ) : fileName && suggestions ? (
+                  <>
+                    <FileText className="size-8 text-primary" />
+                    <p className="text-sm font-medium">{fileName}</p>
+                    <p className="text-xs text-muted-foreground">Haz clic para subir un archivo diferente</p>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="size-8 text-muted-foreground" />
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Suelta tu currículum aquí</p>
+                      <p className="text-xs text-muted-foreground mt-1">o haz clic para buscar — solo PDF, máx. 5MB</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </section>
+        )}
 
       </div>
       </div>

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, LayoutGrid, List } from "lucide-react";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { DEFAULT_FILTERS } from "@/hooks/useProjects";
 import type { Filters } from "@/types/project";
@@ -167,82 +166,83 @@ export function FilterBar({
   }));
 
   return (
-    <div className="flex flex-wrap gap-3 items-end p-4 border-b border-border bg-card">
+    <div className="flex flex-wrap gap-2 items-center px-4 py-2.5 border-b border-border bg-background/60 backdrop-blur-sm">
       {/* Search */}
-      <div className="flex flex-col gap-1 min-w-48">
-        <Label className="text-xs text-muted-foreground">Buscar</Label>
-        <Input
-          placeholder="Título, etiquetas, descripción..."
-          value={filters.search}
-          onChange={(e) => onChange({ ...filters, search: e.target.value })}
-          className="h-8 text-sm"
-        />
-      </div>
+      <Input
+        placeholder="Buscar proyectos..."
+        value={filters.search}
+        onChange={(e) => onChange({ ...filters, search: e.target.value })}
+        className="h-8 text-xs w-48 bg-card border-border"
+      />
+
+      <div className="w-px h-5 bg-border/60 hidden sm:block" />
 
       {/* Platform multiselect dropdown */}
-      <div className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground">Plataforma</Label>
-        <MultiSelectDropdown
-          label="Plataforma"
-          options={platformOptions}
-          selected={filters.platforms}
-          onChange={(platforms) => onChange({ ...filters, platforms })}
-        />
-      </div>
+      <MultiSelectDropdown
+        label="Plataforma"
+        options={platformOptions}
+        selected={filters.platforms}
+        onChange={(platforms) => onChange({ ...filters, platforms })}
+      />
 
       {/* Proposal status multiselect dropdown */}
-      <div className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground">Estado de propuesta</Label>
-        <MultiSelectDropdown
-          label="Estado"
-          options={PROPOSAL_STATUSES}
-          selected={filters.proposalStatuses}
-          onChange={(proposalStatuses) => onChange({ ...filters, proposalStatuses })}
-        />
-      </div>
+      <MultiSelectDropdown
+        label="Estado"
+        options={PROPOSAL_STATUSES}
+        selected={filters.proposalStatuses}
+        onChange={(proposalStatuses) => onChange({ ...filters, proposalStatuses })}
+      />
+
+      <div className="w-px h-5 bg-border/60 hidden sm:block" />
 
       {/* Toggles */}
-      <div className="flex items-end gap-2">
-        <button
-          onClick={() => onChange({ ...filters, hideUnscored: !filters.hideUnscored })}
-          className={btnClass(filters.hideUnscored)}
-        >
-          {filters.hideUnscored ? "Sin score ocultos ✓" : "Ocultar sin score"}
-        </button>
-        <button
-          onClick={() => onChange({ ...filters, showDiscarded: !filters.showDiscarded })}
-          className={btnClass(filters.showDiscarded, "destructive")}
-        >
-          {filters.showDiscarded ? "Mostrando descartados ✓" : "Ver descartados"}
-        </button>
-      </div>
+      <button
+        onClick={() => onChange({ ...filters, hideUnscored: !filters.hideUnscored })}
+        className={btnClass(filters.hideUnscored)}
+      >
+        {filters.hideUnscored ? "Con score ✓" : "Con score"}
+      </button>
+      <button
+        onClick={() => onChange({ ...filters, showDiscarded: !filters.showDiscarded })}
+        className={btnClass(filters.showDiscarded, "destructive")}
+      >
+        {filters.showDiscarded ? "Descartados ✓" : "Descartados"}
+      </button>
+
+      <div className="w-px h-5 bg-border/60 hidden sm:block" />
 
       {/* Sort */}
-      <div className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground">Ordenar por</Label>
-        <div className="flex gap-1">
-          {SORT_OPTIONS.map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => onChange({ ...filters, sort: value as Filters["sort"] })}
-              className={btnClass(filters.sort === value)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      <div className="flex gap-1">
+        {SORT_OPTIONS.map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => onChange({ ...filters, sort: value as Filters["sort"] })}
+            className={btnClass(filters.sort === value)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Right side */}
-      <div className="flex items-center gap-3 ml-auto">
+      <div className="flex items-center gap-2 ml-auto">
         {total !== undefined && (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground tabular-nums">
             {total} proyecto{total !== 1 ? "s" : ""}
           </span>
         )}
 
+        {isActive(filters) && (
+          <button
+            onClick={() => onChange(DEFAULT_FILTERS)}
+            className="h-8 px-2.5 rounded text-xs border border-border text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
+          >
+            Limpiar
+          </button>
+        )}
+
         {onViewModeChange && viewMode && (
-          <div className="flex items-center gap-0.5 border border-border rounded overflow-hidden">
+          <div className="flex items-center gap-0 border border-border rounded-md overflow-hidden">
             <button
               onClick={() => onViewModeChange("grid")}
               className={`p-1.5 transition-colors ${viewMode === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"}`}
@@ -258,15 +258,6 @@ export function FilterBar({
               <List className="size-3.5" />
             </button>
           </div>
-        )}
-
-        {isActive(filters) && (
-          <button
-            onClick={() => onChange(DEFAULT_FILTERS)}
-            className="h-8 px-2.5 rounded text-xs border border-border text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
-          >
-            Limpiar filtros
-          </button>
         )}
       </div>
     </div>

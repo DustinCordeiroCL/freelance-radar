@@ -6,7 +6,6 @@ import { Save, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { InfoPopover } from "@/components/InfoPopover";
 import { getStoredKey, setStoredKey, clearStoredKey } from "@/lib/clientKey";
 
@@ -184,10 +183,10 @@ export default function SettingsPage(): React.ReactElement {
       </header>
 
       <div className="flex-1 overflow-y-auto bg-background">
-        <div className="max-w-2xl p-6 space-y-8">
+        <div className="max-w-2xl p-6 space-y-4">
 
         {/* API Keys */}
-        <section>
+        <section className="rounded-xl border border-border bg-card p-5">
           <h2 className="text-sm font-semibold mb-4">Claves de API</h2>
           <div className="flex flex-col gap-5">
 
@@ -248,12 +247,10 @@ export default function SettingsPage(): React.ReactElement {
           </div>
         </section>
 
-        <Separator />
-
         {/* Collection intervals */}
-        <section>
+        <section className="rounded-xl border border-border bg-card p-5">
           <h2 className="text-sm font-semibold mb-4">Intervalos de recopilación</h2>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <Label className="text-sm">Intervalo RSS / Scraping</Label>
@@ -305,14 +302,12 @@ export default function SettingsPage(): React.ReactElement {
           </div>
         </section>
 
-        <Separator />
-
         {/* Active connectors */}
-        <section>
+        <section className="rounded-xl border border-border bg-card p-5">
           <h2 className="text-sm font-semibold mb-4">Conectores activos</h2>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col divide-y divide-border/60">
             {CONNECTOR_INFO.map(({ key, label, type }) => (
-              <div key={key} className="flex items-center justify-between">
+              <div key={key} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
                 <div>
                   <p className="text-sm font-medium">{label}</p>
                   <p className="text-xs text-muted-foreground">{type}</p>
@@ -334,51 +329,50 @@ export default function SettingsPage(): React.ReactElement {
           </div>
         </section>
 
-        <Separator />
-
         {/* Follow-up */}
-        <section>
+        <section className="rounded-xl border border-border bg-card p-5">
           <h2 className="text-sm font-semibold mb-4">Notificaciones de seguimiento</h2>
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <Label className="text-sm">Días sin actualización de estado</Label>
-              <p className="text-xs text-muted-foreground">
-                Envía una notificación cuando un proyecto en negociación o desarrollo no tiene actualizaciones
-              </p>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <Label className="text-sm">Días sin actualización de estado</Label>
+                <p className="text-xs text-muted-foreground">
+                  Envía una notificación cuando un proyecto en negociación o desarrollo no tiene actualizaciones
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  value={settings.followUpDays}
+                  onChange={(e) => update("followUpDays", parseInt(e.target.value, 10) || 3)}
+                  className="w-16 h-8 text-sm"
+                />
+                <span className="text-xs text-muted-foreground">días</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min={1}
-                value={settings.followUpDays}
-                onChange={(e) => update("followUpDays", parseInt(e.target.value, 10) || 3)}
-                className="w-16 h-8 text-sm"
-              />
-              <span className="text-xs text-muted-foreground">días</span>
-            </div>
-          </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <Label className="text-sm">Umbral de alerta por score</Label>
-              <p className="text-xs text-muted-foreground">
-                Envía una notificación cuando un proyecto nuevo obtiene este score o más
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min={0}
-                max={100}
-                value={settings.scoreAlertThreshold}
-                onChange={(e) => update("scoreAlertThreshold", parseInt(e.target.value, 10) || 70)}
-                className="w-16 h-8 text-sm"
-              />
-              <span className="text-xs text-muted-foreground">/ 100</span>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <Label className="text-sm">Umbral de alerta por score</Label>
+                <p className="text-xs text-muted-foreground">
+                  Envía una notificación cuando un proyecto nuevo obtiene este score o más
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={settings.scoreAlertThreshold}
+                  onChange={(e) => update("scoreAlertThreshold", parseInt(e.target.value, 10) || 70)}
+                  className="w-16 h-8 text-sm"
+                />
+                <span className="text-xs text-muted-foreground">/ 100</span>
+              </div>
             </div>
           </div>
         </section>
-
 
         </div>
       </div>

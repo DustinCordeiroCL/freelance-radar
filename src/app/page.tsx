@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { RefreshCw, Loader2 } from "lucide-react";
+import { useState, useRef, useMemo } from "react";
+import { RefreshCw, Loader2, TrendingUp, Star, FileText, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FilterBar } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
@@ -23,6 +23,17 @@ export default function DashboardPage(): React.ReactElement {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const { visible, sentinelRef, hasMore } = useInfiniteScroll(projects, filters, scrollContainerRef);
+
+  const stats = useMemo(() => {
+    const scored = projects.filter((p) => p.matchScore !== null);
+    const avgScore = scored.length > 0
+      ? Math.round(scored.reduce((acc, p) => acc + (p.matchScore ?? 0), 0) / scored.length)
+      : null;
+    const withProposal = projects.filter((p) => p.proposalText).length;
+    const concluded = projects.filter((p) => p.proposalStatus === "concluida");
+    const totalValue = concluded.reduce((acc, p) => acc + (p.proposalValue ?? 0), 0);
+    return { total: projects.length, avgScore, withProposal, totalValue };
+  }, [projects]);
 
   function handleProposalSaved(projectId: string, proposalText: string): void {
     updateProject({ id: projectId, proposalText });
@@ -49,6 +60,50 @@ export default function DashboardPage(): React.ReactElement {
           {isCollecting ? "Recopilando..." : "Recopilar ahora"}
         </Button>
       </header>
+
+      {/* Stats bar */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border border-b border-border">
+        <div className="flex items-center gap-3 px-5 py-3 bg-card">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+            <TrendingUp className="size-4" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Total proyectos</p>
+            <p className="text-lg font-bold tabular-nums leading-none">{stats.total}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 px-5 py-3 bg-card">
+          <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500 shrink-0">
+            <Star className="size-4" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Score promedio</p>
+            <p className="text-lg font-bold tabular-nums leading-none">
+              {stats.avgScore !== null ? stats.avgScore : <span className="text-muted-foreground text-sm">—</span>}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 px-5 py-3 bg-card">
+          <div className="p-2 rounded-lg bg-violet-500/10 text-violet-500 shrink-0">
+            <FileText className="size-4" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Con propuesta</p>
+            <p className="text-lg font-bold tabular-nums leading-none">{stats.withProposal}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 px-5 py-3 bg-card">
+          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 shrink-0">
+            <DollarSign className="size-4" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Facturado (USD)</p>
+            <p className="text-lg font-bold tabular-nums leading-none">
+              {stats.totalValue > 0 ? stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : <span className="text-muted-foreground text-sm">—</span>}
+            </p>
+          </div>
+        </div>
+      </div>
 
       <FilterBar
         filters={filters}
