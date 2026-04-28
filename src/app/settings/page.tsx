@@ -15,7 +15,6 @@ interface Settings {
   intervalAPI: number;
   intervalScraping: number;
   activeWorkana: boolean;
-  activeFreelancer: boolean;
   active99Freelas: boolean;
   activeIndeed: boolean;
   activeSoyFreelancer: boolean;
@@ -25,32 +24,32 @@ interface Settings {
   activeRemotive: boolean;
   activeTrampos: boolean;
   activeTorre: boolean;
-  activeGetOnBoard: boolean;
   activeProgramathor: boolean;
   activeGuru: boolean;
   followUpDays: number;
   scoreAlertThreshold: number;
   anthropicKeySet: boolean;
-  freelancerTokenSet: boolean;
   profileSkills: string | null;
   profileTitles: string | null;
 }
 
 const CONNECTOR_INFO = [
-  { key: "activeWorkana", label: "Workana", type: "Scraping (PT + ES)" },
-  { key: "active99Freelas", label: "99Freelas", type: "Scraping" },
-  { key: "activeFreelancer", label: "Freelancer.com", type: "API" },
-  { key: "activeIndeed", label: "Indeed Chile", type: "Scraping" },
-  { key: "activeSoyFreelancer", label: "SoyFreelancer", type: "Scraping (CL)" },
-  { key: "activeUpwork", label: "Upwork", type: "Feed RSS" },
-  { key: "activeRemoteOK", label: "RemoteOK", type: "API JSON pública" },
+  // Feed RSS — mais rápidos
   { key: "activeWeWorkRemotely", label: "We Work Remotely", type: "Feed RSS" },
   { key: "activeRemotive", label: "Remotive", type: "Feed RSS" },
+  { key: "activeUpwork", label: "Upwork", type: "Feed RSS" },
+  { key: "activeGuru", label: "Guru.com", type: "Feed RSS" },
+  // API JSON — rápidos e estruturados
+  { key: "activeRemoteOK", label: "RemoteOK", type: "API JSON pública" },
   { key: "activeTrampos", label: "Trampos.co", type: "API JSON (BR)" },
   { key: "activeTorre", label: "Torre.co", type: "API JSON (Latam)" },
-  { key: "activeGetOnBoard", label: "GetOnBoard", type: "Scraping (CL/Latam)" },
-  { key: "activeProgramathor", label: "Programathor", type: "Scraping (BR)" },
-  { key: "activeGuru", label: "Guru.com", type: "Feed RSS" },
+  // Scraping HTML — médio
+  { key: "activeWorkana", label: "Workana", type: "Scraping (PT + ES)" },
+  { key: "active99Freelas", label: "99Freelas", type: "Scraping (BR)" },
+  // Playwright — pesado, requer Chromium instalado
+  { key: "activeSoyFreelancer", label: "SoyFreelancer", type: "Scraping + Playwright (CL)" },
+  { key: "activeProgramathor", label: "Programathor", type: "Scraping + Playwright (BR)" },
+  { key: "activeIndeed", label: "Indeed Chile", type: "Scraping + Playwright (CL)" },
 ] as const;
 
 function ApiKeyInput({
@@ -89,7 +88,6 @@ export default function SettingsPage(): React.ReactElement {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [anthropicKey, setAnthropicKey] = useState("");
-  const [freelancerToken, setFreelancerToken] = useState("");
 
   useEffect(() => {
     // Load anthropic key from localStorage (never from DB)
@@ -104,7 +102,6 @@ export default function SettingsPage(): React.ReactElement {
       .then((data) => {
         const s = data as Settings;
         setSettings(s);
-        setFreelancerToken("");
       })
       .catch(() => toast.error("Error al cargar la configuración"));
   }, []);
@@ -122,7 +119,6 @@ export default function SettingsPage(): React.ReactElement {
         intervalAPI: settings.intervalAPI,
         intervalScraping: settings.intervalScraping,
         activeWorkana: settings.activeWorkana,
-        activeFreelancer: settings.activeFreelancer,
         active99Freelas: settings.active99Freelas,
         activeIndeed: settings.activeIndeed,
         activeSoyFreelancer: settings.activeSoyFreelancer,
@@ -132,13 +128,11 @@ export default function SettingsPage(): React.ReactElement {
         activeRemotive: settings.activeRemotive,
         activeTrampos: settings.activeTrampos,
         activeTorre: settings.activeTorre,
-        activeGetOnBoard: settings.activeGetOnBoard,
         activeProgramathor: settings.activeProgramathor,
         activeGuru: settings.activeGuru,
         followUpDays: settings.followUpDays,
         scoreAlertThreshold: settings.scoreAlertThreshold,
       };
-      if (freelancerToken) payload.freelancerToken = freelancerToken;
 
       const res = await fetch("/api/settings", {
         method: "PATCH",
@@ -217,32 +211,6 @@ export default function SettingsPage(): React.ReactElement {
               )}
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-1.5">
-                <Label className="text-sm">Freelancer.com API Token</Label>
-                <InfoPopover>
-                  <p className="font-medium text-foreground mb-1">¿Qué es esto?</p>
-                  <p className="mb-2">Requerido para el conector de Freelancer.com. Sin él, esa plataforma se omite.</p>
-                  <p className="font-medium text-foreground mb-1">Cómo obtenerlo</p>
-                  <ol className="list-decimal list-inside space-y-1">
-                    <li>Ve a <span className="font-mono text-xs bg-muted px-1 rounded">freelancer.com/api</span></li>
-                    <li>Registra una aplicación</li>
-                    <li>Copia el <strong>OAuth token</strong></li>
-                  </ol>
-                </InfoPopover>
-              </div>
-              <ApiKeyInput
-                value={freelancerToken}
-                onChange={setFreelancerToken}
-                placeholder={settings.freelancerTokenSet ? "Dejar vacío para mantener el token actual" : "Pega tu token aquí"}
-              />
-              {!settings.freelancerTokenSet && !freelancerToken && (
-                <p className="text-xs text-muted-foreground">Opcional — el conector de Freelancer.com se omitirá si no está configurado</p>
-              )}
-              {settings.freelancerTokenSet && !freelancerToken && (
-                <p className="text-xs text-emerald-500">Token configurado — dejar vacío para mantenerlo</p>
-              )}
-            </div>
 
           </div>
         </section>

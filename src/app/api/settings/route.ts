@@ -13,12 +13,11 @@ async function getOrCreateSettings() {
 export async function GET(): Promise<NextResponse> {
   try {
     const settings = await getOrCreateSettings();
-    const { anthropicKey: _ak, freelancerToken, ...safeSettings } = settings;
+    const { anthropicKey: _ak, ...safeSettings } = settings;
     return NextResponse.json({
       ...safeSettings,
       // anthropicKeySet reflects only the server env var — client key lives in localStorage
       anthropicKeySet: !!process.env.ANTHROPIC_API_KEY?.trim(),
-      freelancerTokenSet: !!freelancerToken,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
@@ -27,9 +26,9 @@ export async function GET(): Promise<NextResponse> {
 }
 
 const BOOLEAN_FIELDS = new Set([
-  "activeWorkana", "activeFreelancer", "active99Freelas", "activeIndeed",
+  "activeWorkana", "active99Freelas", "activeIndeed",
   "activeSoyFreelancer", "activeUpwork", "activeRemoteOK", "activeWeWorkRemotely",
-  "activeRemotive", "activeTrampos", "activeTorre", "activeGetOnBoard",
+  "activeRemotive", "activeTrampos", "activeTorre",
   "activeProgramathor", "activeGuru",
 ]);
 
@@ -38,7 +37,7 @@ const NUMBER_FIELDS = new Set([
 ]);
 
 const STRING_FIELDS = new Set([
-  "anthropicKey", "freelancerToken", "profileSkills", "profileTitles", "excludeKeywords",
+  "anthropicKey", "profileSkills", "profileTitles", "excludeKeywords",
 ]);
 
 function validateField(key: string, value: unknown): string | null {
@@ -106,11 +105,10 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
       invalidateProfileCache();
     }
 
-    const { anthropicKey: _ak2, freelancerToken, ...safeUpdated } = updated;
+    const { anthropicKey: _ak2, ...safeUpdated } = updated;
     return NextResponse.json({
       ...safeUpdated,
       anthropicKeySet: !!process.env.ANTHROPIC_API_KEY?.trim(),
-      freelancerTokenSet: !!freelancerToken,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

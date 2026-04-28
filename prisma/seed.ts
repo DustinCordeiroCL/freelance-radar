@@ -448,13 +448,11 @@ async function main() {
       activeTrampos: true,
       activeTorre: true,
       activeGuru: true,
-      activeFreelancer: true,
       activeWorkana: false,
       active99Freelas: false,
       activeIndeed: false,
       activeSoyFreelancer: false,
       activeProgramathor: false,
-      activeGetOnBoard: false,
     },
   });
 

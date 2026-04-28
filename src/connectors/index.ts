@@ -2,7 +2,6 @@ import { prisma } from "@/lib/db";
 import { enqueueScore } from "@/lib/scoringQueue";
 import { collect as collectWorkana } from "./workana";
 import { collect as collectNinetyNine } from "./ninetyNine";
-import { collect as collectFreelancer } from "./freelancer";
 import { collect as collectIndeed } from "./indeed";
 import { collect as collectSoyFreelancer } from "./soyfreelancer";
 import { collect as collectUpwork } from "./upwork";
@@ -11,7 +10,6 @@ import { collect as collectWeWorkRemotely } from "./weworkremotely";
 import { collect as collectRemotive } from "./remotive";
 import { collect as collectTrampos } from "./trampos";
 import { collect as collectTorre } from "./torre";
-import { collect as collectGetOnBoard } from "./getonboard";
 import { collect as collectProgramathor } from "./programathor";
 import { collect as collectGuru } from "./guru";
 import type { RawProject } from "./types";
@@ -167,7 +165,6 @@ export async function runCollection(apiKey = ""): Promise<CollectResult[]> {
   }> = [
     { platform: "workana", active: settings.activeWorkana, fn: () => collectWorkana() },
     { platform: "99freelas", active: settings.active99Freelas, fn: () => collectNinetyNine() },
-    { platform: "freelancer", active: settings.activeFreelancer, fn: () => collectFreelancer() },
     { platform: "indeed", active: settings.activeIndeed, fn: () => collectIndeed() },
     { platform: "soyfreelancer", active: settings.activeSoyFreelancer, fn: (kw) => collectSoyFreelancer(kw) },
     { platform: "upwork", active: settings.activeUpwork, fn: (kw) => collectUpwork(kw) },
@@ -176,7 +173,6 @@ export async function runCollection(apiKey = ""): Promise<CollectResult[]> {
     { platform: "remotive", active: settings.activeRemotive, fn: () => collectRemotive() },
     { platform: "trampos", active: settings.activeTrampos, fn: (kw) => collectTrampos(kw) },
     { platform: "torre", active: settings.activeTorre, fn: (kw) => collectTorre(kw) },
-    { platform: "getonboard", active: settings.activeGetOnBoard, fn: (kw) => collectGetOnBoard(kw) },
     { platform: "programathor", active: settings.activeProgramathor, fn: (kw) => collectProgramathor(kw) },
     { platform: "guru", active: settings.activeGuru, fn: () => collectGuru() },
   ];
