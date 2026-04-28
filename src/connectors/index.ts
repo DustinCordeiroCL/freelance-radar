@@ -2,14 +2,10 @@ import { prisma } from "@/lib/db";
 import { enqueueScore } from "@/lib/scoringQueue";
 import { collect as collectWorkana } from "./workana";
 import { collect as collectNinetyNine } from "./ninetyNine";
-import { collect as collectIndeed } from "./indeed";
+import { collect as collectFreelancer } from "./freelancer";
 import { collect as collectSoyFreelancer } from "./soyfreelancer";
 import { collect as collectRemoteOK } from "./remoteok";
-import { collect as collectWeWorkRemotely } from "./weworkremotely";
-import { collect as collectRemotive } from "./remotive";
-import { collect as collectTrampos } from "./trampos";
 import { collect as collectTorre } from "./torre";
-import { collect as collectProgramathor } from "./programathor";
 import { collect as collectGuru } from "./guru";
 import type { RawProject } from "./types";
 
@@ -164,14 +160,10 @@ export async function runCollection(apiKey = ""): Promise<CollectResult[]> {
   }> = [
     { platform: "workana", active: settings.activeWorkana, fn: () => collectWorkana() },
     { platform: "99freelas", active: settings.active99Freelas, fn: () => collectNinetyNine() },
-    { platform: "indeed", active: settings.activeIndeed, fn: () => collectIndeed() },
+    { platform: "freelancer", active: settings.activeFreelancer, fn: () => collectFreelancer() },
     { platform: "soyfreelancer", active: settings.activeSoyFreelancer, fn: (kw) => collectSoyFreelancer(kw) },
     { platform: "remoteok", active: settings.activeRemoteOK, fn: () => collectRemoteOK() },
-    { platform: "weworkremotely", active: settings.activeWeWorkRemotely, fn: () => collectWeWorkRemotely() },
-    { platform: "remotive", active: settings.activeRemotive, fn: () => collectRemotive() },
-    { platform: "trampos", active: settings.activeTrampos, fn: (kw) => collectTrampos(kw) },
     { platform: "torre", active: settings.activeTorre, fn: (kw) => collectTorre(kw) },
-    { platform: "programathor", active: settings.activeProgramathor, fn: (kw) => collectProgramathor(kw) },
     { platform: "guru", active: settings.activeGuru, fn: () => collectGuru() },
   ];
 

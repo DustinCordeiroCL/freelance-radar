@@ -433,25 +433,19 @@ async function main() {
   await prisma.settings.upsert({
     where: { id: 1 },
     update: {
-      activeIndeed: false,
       activeSoyFreelancer: false,
-      activeProgramathor: false,
-      activeWorkana: false,    // scraping instável
-      active99Freelas: false,  // scraping instável
+      activeWorkana: false,
+      active99Freelas: false,
     },
     create: {
       id: 1,
       activeRemoteOK: true,
-      activeWeWorkRemotely: true,
-      activeRemotive: true,
-      activeTrampos: true,
       activeTorre: true,
       activeGuru: true,
+      activeFreelancer: false,
       activeWorkana: false,
       active99Freelas: false,
-      activeIndeed: false,
       activeSoyFreelancer: false,
-      activeProgramathor: false,
     },
   });
 

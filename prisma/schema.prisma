@@ -45,6 +45,7 @@ model Settings {
   intervalAPI         Int     @default(30)
   intervalScraping    Int     @default(180)
   activeWorkana       Boolean @default(true)
+  activeFreelancer    Boolean @default(false)
   active99Freelas     Boolean @default(true)
   activeIndeed        Boolean @default(false)
   activeSoyFreelancer Boolean @default(false)
@@ -58,6 +59,7 @@ model Settings {
   followUpDays        Int     @default(3)
   scoreAlertThreshold Int     @default(70)
   anthropicKey        String?
+  freelancerToken     String?
   profileSkills       String?
   profileTitles       String?
   excludeKeywords     String?
