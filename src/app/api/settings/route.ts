@@ -27,7 +27,7 @@ export async function GET(): Promise<NextResponse> {
 
 const BOOLEAN_FIELDS = new Set([
   "activeWorkana", "active99Freelas", "activeIndeed",
-  "activeSoyFreelancer", "activeUpwork", "activeRemoteOK", "activeWeWorkRemotely",
+  "activeSoyFreelancer", "activeRemoteOK", "activeWeWorkRemotely",
   "activeRemotive", "activeTrampos", "activeTorre",
   "activeProgramathor", "activeGuru",
 ]);

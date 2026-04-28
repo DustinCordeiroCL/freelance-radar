@@ -48,7 +48,6 @@ model Settings {
   active99Freelas     Boolean @default(true)
   activeIndeed        Boolean @default(false)
   activeSoyFreelancer Boolean @default(false)
-  activeUpwork        Boolean @default(false)
   activeRemoteOK      Boolean @default(false)
   activeWeWorkRemotely Boolean @default(false)
   activeRemotive      Boolean @default(false)

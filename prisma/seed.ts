@@ -441,7 +441,6 @@ async function main() {
     },
     create: {
       id: 1,
-      activeUpwork: true,
       activeRemoteOK: true,
       activeWeWorkRemotely: true,
       activeRemotive: true,

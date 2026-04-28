@@ -4,7 +4,6 @@ import { collect as collectWorkana } from "./workana";
 import { collect as collectNinetyNine } from "./ninetyNine";
 import { collect as collectIndeed } from "./indeed";
 import { collect as collectSoyFreelancer } from "./soyfreelancer";
-import { collect as collectUpwork } from "./upwork";
 import { collect as collectRemoteOK } from "./remoteok";
 import { collect as collectWeWorkRemotely } from "./weworkremotely";
 import { collect as collectRemotive } from "./remotive";
@@ -167,7 +166,6 @@ export async function runCollection(apiKey = ""): Promise<CollectResult[]> {
     { platform: "99freelas", active: settings.active99Freelas, fn: () => collectNinetyNine() },
     { platform: "indeed", active: settings.activeIndeed, fn: () => collectIndeed() },
     { platform: "soyfreelancer", active: settings.activeSoyFreelancer, fn: (kw) => collectSoyFreelancer(kw) },
-    { platform: "upwork", active: settings.activeUpwork, fn: (kw) => collectUpwork(kw) },
     { platform: "remoteok", active: settings.activeRemoteOK, fn: () => collectRemoteOK() },
     { platform: "weworkremotely", active: settings.activeWeWorkRemotely, fn: () => collectWeWorkRemotely() },
     { platform: "remotive", active: settings.activeRemotive, fn: () => collectRemotive() },

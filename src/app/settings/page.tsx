@@ -18,7 +18,6 @@ interface Settings {
   active99Freelas: boolean;
   activeIndeed: boolean;
   activeSoyFreelancer: boolean;
-  activeUpwork: boolean;
   activeRemoteOK: boolean;
   activeWeWorkRemotely: boolean;
   activeRemotive: boolean;
@@ -37,7 +36,6 @@ const CONNECTOR_INFO = [
   // Feed RSS — mais rápidos
   { key: "activeWeWorkRemotely", label: "We Work Remotely", type: "Feed RSS" },
   { key: "activeRemotive", label: "Remotive", type: "Feed RSS" },
-  { key: "activeUpwork", label: "Upwork", type: "Feed RSS" },
   { key: "activeGuru", label: "Guru.com", type: "Feed RSS" },
   // API JSON — rápidos e estruturados
   { key: "activeRemoteOK", label: "RemoteOK", type: "API JSON pública" },
@@ -122,7 +120,6 @@ export default function SettingsPage(): React.ReactElement {
         active99Freelas: settings.active99Freelas,
         activeIndeed: settings.activeIndeed,
         activeSoyFreelancer: settings.activeSoyFreelancer,
-        activeUpwork: settings.activeUpwork,
         activeRemoteOK: settings.activeRemoteOK,
         activeWeWorkRemotely: settings.activeWeWorkRemotely,
         activeRemotive: settings.activeRemotive,
